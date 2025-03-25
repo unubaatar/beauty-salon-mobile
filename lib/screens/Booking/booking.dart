@@ -4,11 +4,13 @@ import 'dart:convert';
 import 'package:intl/intl.dart';
 
 import '../home_screen.dart';
+import '../Booking/timeReserveDetail.dart';
 
 import '../../models/service.dart';
 import '../../models/serviceCategory.dart';
 import '../../models/worker.dart';
 import '../../models/serviceVariant.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class BookingPage extends StatefulWidget {
   const BookingPage({super.key});
@@ -20,6 +22,11 @@ class BookingPage extends StatefulWidget {
 class _BookingPageState extends State<BookingPage>
     with SingleTickerProviderStateMixin {
   TabController? _tabController;
+
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
+
+  final _phoneController = TextEditingController();
+  final _passwordController = TextEditingController();
 
   List<ServiceCategory> _serviceCategories = [];
   List<Service> _services = [];
@@ -45,8 +52,9 @@ class _BookingPageState extends State<BookingPage>
 
   Future fetchCategories() async {
     try {
-      final url =
-          Uri.parse('http://10.0.2.2:4004/api/v1/serviceCategories/list');
+      final url = Uri.parse(
+        'http://10.0.2.2:4004/api/v1/serviceCategories/list',
+      );
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
@@ -55,9 +63,10 @@ class _BookingPageState extends State<BookingPage>
       if (response.statusCode == 200) {
         final jsonData = jsonDecode(response.body);
         setState(() {
-          _serviceCategories = (jsonData['rows'] as List)
-              .map((eachCategory) => ServiceCategory.fromJson(eachCategory))
-              .toList();
+          _serviceCategories =
+              (jsonData['rows'] as List)
+                  .map((eachCategory) => ServiceCategory.fromJson(eachCategory))
+                  .toList();
           _tabController = TabController(
             length: _serviceCategories.length,
             vsync: this,
@@ -88,9 +97,10 @@ class _BookingPageState extends State<BookingPage>
       if (response.statusCode == 200) {
         setState(() {
           final jsonData = jsonDecode(response.body);
-          _services = (jsonData['rows'] as List)
-              .map((eachService) => Service.fromJson(eachService))
-              .toList();
+          _services =
+              (jsonData['rows'] as List)
+                  .map((eachService) => Service.fromJson(eachService))
+                  .toList();
           print(_services);
         });
       } else {
@@ -107,8 +117,9 @@ class _BookingPageState extends State<BookingPage>
       _selectedServices.forEach((service) {
         servicesToSend.add(service.service.id);
       });
-      final url =
-          Uri.parse('http://10.0.2.2:4004/api/v1/services/getWorkerByService');
+      final url = Uri.parse(
+        'http://10.0.2.2:4004/api/v1/services/getWorkerByService',
+      );
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
@@ -118,9 +129,10 @@ class _BookingPageState extends State<BookingPage>
       if (response.statusCode == 200) {
         final jsonData = jsonDecode(response.body);
         setState(() {
-          _workers = (jsonData as List)
-              .map((eachWorker) => Worker.fromJson(eachWorker))
-              .toList();
+          _workers =
+              (jsonData as List)
+                  .map((eachWorker) => Worker.fromJson(eachWorker))
+                  .toList();
         });
       } else {
         print("jiijii");
@@ -137,23 +149,25 @@ class _BookingPageState extends State<BookingPage>
         loadingPossibleTimes = true;
       });
       final url = Uri.parse(
-          'http://10.0.2.2:4004/api/v1/timeRequests/getPossibleTimes');
+        'http://10.0.2.2:4004/api/v1/timeRequests/getPossibleTimes',
+      );
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'dateTitle': selectedDate,
           'worker': selectedWorkerId,
-          'duration': getTotalDuration(_selectedServices)
+          'duration': getTotalDuration(_selectedServices),
         }),
       );
       if (response.statusCode == 200) {
         final jsonData = jsonDecode(response.body);
         setState(() {
           selectedSchedule = jsonData['schedule'];
-          _possibleTimes = (jsonData['rows'] as List)
-              .map((eachTime) => eachTime['time'].toString())
-              .toList();
+          _possibleTimes =
+              (jsonData['rows'] as List)
+                  .map((eachTime) => eachTime['time'].toString())
+                  .toList();
         });
       } else {
         print("jiijii");
@@ -173,7 +187,8 @@ class _BookingPageState extends State<BookingPage>
         serviceIds.add(service.service.id);
       });
       final url = Uri.parse(
-          'http://10.0.2.2:4004/api/v1/workerLevels/getAdditionalFee');
+        'http://10.0.2.2:4004/api/v1/workerLevels/getAdditionalFee',
+      );
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
@@ -185,9 +200,10 @@ class _BookingPageState extends State<BookingPage>
       if (response.statusCode == 200) {
         final jsonData = jsonDecode(response.body);
         setState(() {
-          additionalFees = (jsonData as List)
-              .map((addFee) => AdditionalFee.fromJson(addFee))
-              .toList();
+          additionalFees =
+              (jsonData as List)
+                  .map((addFee) => AdditionalFee.fromJson(addFee))
+                  .toList();
         });
       } else {
         print('jiijii');
@@ -209,39 +225,150 @@ class _BookingPageState extends State<BookingPage>
             "price": service.price,
           });
         } else {
-          reqServices
-              .add({"service": service.service.id, "price": service.price});
+          reqServices.add({
+            "service": service.service.id,
+            "price": service.price,
+          });
         }
       });
 
       final List<Map<String, dynamic>> reqAdditionalFees = [];
 
       additionalFees.forEach((addPrice) {
-        reqAdditionalFees
-            .add({'service': addPrice.id, 'price': addPrice.addPrice});
+        reqAdditionalFees.add({
+          'service': addPrice.id,
+          'price': addPrice.addPrice,
+        });
       });
 
-      final url = Uri.parse('http://10.0.2.2:4004/api/v1/timeReserves/create');
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'customer': '67a228bea4d6cb41926e2ea2',
-          'schedule': selectedSchedule,
-          'services': reqServices,
-          'startTime': selectedTime,
-          'additionalPrices': reqAdditionalFees
-        }),
-      );
-      if (response.statusCode == 200) {
-        Navigator.push(
-            context, MaterialPageRoute(builder: (context) => HomeScreen()));
+      final String? customerId = await _secureStorage.read(key: 'customerId');
+      if (customerId == null) {
+        _showLoginDialog();
       } else {
-        print('jiijii');
+        final url = Uri.parse(
+          'http://10.0.2.2:4004/api/v1/timeReserves/create',
+        );
+        final response = await http.post(
+          url,
+          headers: {'Content-Type': 'application/json'},
+          body: json.encode({
+            'customer': customerId,
+            'schedule': selectedSchedule,
+            'services': reqServices,
+            'startTime': selectedTime,
+            'additionalPrices': reqAdditionalFees,
+          }),
+        );
+        if (response.statusCode == 200) {
+          final jsonData = jsonDecode(response.body);
+          String responseTimeReserveId = jsonData['_id'];
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => TimeReservceDetail( timeReserveId: responseTimeReserveId)),
+          );
+        } else {
+          print('jiijii');
+        }
       }
     } catch (err) {
       print(err);
     }
+  }
+
+  void _showLoginDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          title: const Text(
+            'Нэвтрэх шаардлагатай',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 16),
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.0),
+          ),
+          content: Container(
+            height: 200,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                TextField(
+                  controller: _phoneController,
+                  decoration: InputDecoration(
+                    labelText: 'Утас',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _passwordController,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    labelText: 'Нууц үг',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                ElevatedButton(
+                  onPressed: () async {
+                    final url = Uri.parse(
+                      'http://10.0.2.2:4004/api/v1/customers/login',
+                    );
+                    final response = await http.post(
+                      url,
+                      headers: {'Content-Type': 'application/json'},
+                      body: json.encode({
+                        'phone': _phoneController.text,
+                        'password': _passwordController.text,
+                      }),
+                    );
+
+                    if (response.statusCode == 200) {
+                      final jsonData = jsonDecode(response.body);
+                      _saveCredentials(jsonData['customer'], jsonData['token']);
+                       ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Амжилттай нэвтэрлээ'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                      Navigator.pop(context);
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Амжилтгүй'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                      return;
+                    }
+                  },
+                  child: Text('Нэвтрэх'),
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: Size(double.infinity, 36),
+                    backgroundColor: Colors.pink,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _saveCredentials(String customerId, String token) async {
+    await _secureStorage.write(key: 'customerId', value: customerId);
+    await _secureStorage.write(key: 'token', value: token);
   }
 
   void nextStep() async {
@@ -331,169 +458,189 @@ class _BookingPageState extends State<BookingPage>
     final currentWeekDates = getWeekDates(currentDate);
 
     return Scaffold(
-        appBar: AppBar(
-          title: const Text('Booking'),
-        ),
-        floatingActionButton: Padding(
-          padding: const EdgeInsets.only(bottom: 80.0),
-          child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.zero,
-                  shape: const CircleBorder(),
-                  minimumSize: const Size(56, 56),
-                  backgroundColor: Colors.pink,
-                  foregroundColor: Colors.white),
-              onPressed: () {
-                showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: const Text('Нийт үйлчилгээнүүд',
-                            style: TextStyle(fontSize: 18),
-                            textAlign: TextAlign.center),
-                        content:
-                            Column(mainAxisSize: MainAxisSize.min, children: [
-                          ..._selectedServices.map((service) {
-                            return Padding(
-                                padding: const EdgeInsets.fromLTRB(0, 4, 0, 12),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Align(
-                                      alignment: Alignment.topLeft,
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.start,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text('${service.service.title} '),
-                                          const SizedBox(
-                                            height: 3,
-                                          ),
-                                          Text(
-                                              '${service.variant != null ? service.variant?.title : ''} '),
-                                        ],
-                                      ),
-                                    ),
-                                    Align(
-                                      alignment: Alignment.topLeft,
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.start,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text('${service.price}₮'),
-                                          const SizedBox(
-                                            height: 3,
-                                          ),
-                                          Text(
-                                              '${service.variant != null ? service.variant?.duration : service.service.duration} минут '),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ));
-                          }),
-                          const Divider(),
-                          Row(
+      appBar: AppBar(title: const Text('Booking')),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 80.0),
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            padding: EdgeInsets.zero,
+            shape: const CircleBorder(),
+            minimumSize: const Size(56, 56),
+            backgroundColor: Colors.pink,
+            foregroundColor: Colors.white,
+          ),
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: const Text(
+                    'Нийт үйлчилгээнүүд',
+                    style: TextStyle(fontSize: 18),
+                    textAlign: TextAlign.center,
+                  ),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ..._selectedServices.map((service) {
+                        return Padding(
+                          padding: const EdgeInsets.fromLTRB(0, 4, 0, 12),
+                          child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text('Нийт:'),
-                              Text('${getTotalPrice(_selectedServices)}₮')
+                              Align(
+                                alignment: Alignment.topLeft,
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('${service.service.title} '),
+                                    const SizedBox(height: 3),
+                                    Text(
+                                      '${service.variant != null ? service.variant?.title : ''} ',
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Align(
+                                alignment: Alignment.topLeft,
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('${service.price}₮'),
+                                    const SizedBox(height: 3),
+                                    Text(
+                                      '${service.variant != null ? service.variant?.duration : service.service.duration} минут ',
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ],
-                          )
-                        ]),
-                      );
-                    });
+                          ),
+                        );
+                      }),
+                      const Divider(),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Нийт:'),
+                          Text('${getTotalPrice(_selectedServices)}₮'),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
               },
-              child: const Icon(Icons.medical_services_outlined)),
+            );
+          },
+          child: const Icon(Icons.medical_services_outlined),
         ),
-        bottomSheet: SizedBox(
-          height: 80,
-          width: double.infinity,
-          child: Card(
-              color: Colors.white,
-              elevation: 2,
-              shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.zero,
-              ),
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-                child: Row(children: [
-                  Expanded(
-                      flex: 4,
-                      child: TextButton(
-                        onPressed: currentStep != 0 ? goBack : null,
-                        style: TextButton.styleFrom(
-                          minimumSize: const Size(40, 40),
-                          foregroundColor: Colors.pink,
-                          // side: const BorderSide(
-                          //   color: Colors.pink,
-                          //   width: 1,
-                          // ),
-                        ),
-                        child: const Icon(Icons.backspace_outlined),
-                      )),
-                  const Expanded(flex: 1, child: const SizedBox()),
-                  Expanded(
-                    flex: 18,
-                    child: ElevatedButton(
-                      onPressed: (currentStep == 0 && _selectedServices.isEmpty)
-                          ? null
-                          : (currentStep == 1 && selectedWorkerId == '')
-                              ? null
-                              : (currentStep == 2 &&
-                                      (selectedSchedule == '' ||
-                                          selectedTime == ''))
-                                  ? null
-                                  : nextStep,
-                      style: ElevatedButton.styleFrom(
-                          minimumSize: const Size(200, 40),
-                          backgroundColor: Colors.pink,
-                          foregroundColor: Colors.white),
-                      child: Text(
-                          ' ${currentStep == 2 ? 'Захиалах' : 'Үргэлжлүүлэх'}'),
+      ),
+      bottomSheet: SizedBox(
+        height: 80,
+        width: double.infinity,
+        child: Card(
+          color: Colors.white,
+          elevation: 2,
+          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 4,
+                  child: TextButton(
+                    onPressed: currentStep != 0 ? goBack : null,
+                    style: TextButton.styleFrom(
+                      minimumSize: const Size(40, 40),
+                      foregroundColor: Colors.pink,
+                      // side: const BorderSide(
+                      //   color: Colors.pink,
+                      //   width: 1,
+                      // ),
                     ),
-                  )
-                ]),
-              )),
+                    child: const Icon(Icons.backspace_outlined),
+                  ),
+                ),
+                const Expanded(flex: 1, child: const SizedBox()),
+                Expanded(
+                  flex: 18,
+                  child: ElevatedButton(
+                    onPressed:
+                        (currentStep == 0 && _selectedServices.isEmpty)
+                            ? null
+                            : (currentStep == 1 && selectedWorkerId == '')
+                            ? null
+                            : (currentStep == 2 &&
+                                (selectedSchedule == '' || selectedTime == ''))
+                            ? null
+                            : nextStep,
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(200, 40),
+                      backgroundColor: Colors.pink,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: Text(
+                      ' ${currentStep == 2 ? 'Захиалах' : 'Үргэлжлүүлэх'}',
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
-        body: _serviceCategories.isEmpty
-            ? const Center(child: CircularProgressIndicator())
-            : currentStep == 0
-                ? DefaultTabController(
-                    length: _serviceCategories.length,
-                    child: Column(
-                      children: [
-                        TabBar(
-                          controller: _tabController,
-                          isScrollable: true,
-                          indicatorSize: TabBarIndicatorSize.label,
-                          tabAlignment: TabAlignment.center,
-                          tabs: _serviceCategories.map((category) {
+      ),
+      body:
+          _serviceCategories.isEmpty
+              ? const Center(child: CircularProgressIndicator())
+              : currentStep == 0
+              ? DefaultTabController(
+                length: _serviceCategories.length,
+                child: Column(
+                  children: [
+                    TabBar(
+                      controller: _tabController,
+                      isScrollable: true,
+                      indicatorSize: TabBarIndicatorSize.label,
+                      tabAlignment: TabAlignment.center,
+                      tabs:
+                          _serviceCategories.map((category) {
                             return Tab(text: category.title);
                           }).toList(),
-                        ),
-                        const SizedBox(height: 20),
-                        Expanded(
-                            child: ListView(
-                          children: _services.map((service) {
-                            return Card(
+                    ),
+                    const SizedBox(height: 20),
+                    Expanded(
+                      child: ListView(
+                        children:
+                            _services.map((service) {
+                              return Card(
                                 shape: RoundedRectangleBorder(
                                   side: BorderSide(
-                                    color: !_selectedServices.any((item) =>
-                                            item.service.id == service.id)
-                                        ? const Color.fromARGB(
-                                            255, 179, 168, 168)
-                                        : const Color.fromARGB(
-                                            255, 224, 36, 96),
-                                    width: !_selectedServices.any((item) =>
-                                            item.service.id == service.id)
-                                        ? 1
-                                        : 2,
+                                    color:
+                                        !_selectedServices.any(
+                                              (item) =>
+                                                  item.service.id == service.id,
+                                            )
+                                            ? const Color.fromARGB(
+                                              255,
+                                              179,
+                                              168,
+                                              168,
+                                            )
+                                            : const Color.fromARGB(
+                                              255,
+                                              224,
+                                              36,
+                                              96,
+                                            ),
+                                    width:
+                                        !_selectedServices.any(
+                                              (item) =>
+                                                  item.service.id == service.id,
+                                            )
+                                            ? 1
+                                            : 2,
                                   ),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
@@ -501,453 +648,502 @@ class _BookingPageState extends State<BookingPage>
                                   children: [
                                     Expanded(
                                       flex: 5,
-                                      child: Image.network(service.image,
-                                          height: 120, fit: BoxFit.cover),
+                                      child: Image.network(
+                                        service.image,
+                                        height: 120,
+                                        fit: BoxFit.cover,
+                                      ),
                                     ),
-                                    const Expanded(
-                                      flex: 1,
-                                      child: SizedBox(),
-                                    ),
+                                    const Expanded(flex: 1, child: SizedBox()),
                                     Expanded(
-                                        flex: 5,
-                                        child: Align(
-                                          alignment: Alignment.topLeft,
-                                          child: Column(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.start,
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                service.title,
-                                              ),
-                                            ],
-                                          ),
-                                        )),
-                                    const Expanded(
-                                      flex: 1,
-                                      child: SizedBox(),
+                                      flex: 5,
+                                      child: Align(
+                                        alignment: Alignment.topLeft,
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [Text(service.title)],
+                                        ),
+                                      ),
                                     ),
+                                    const Expanded(flex: 1, child: SizedBox()),
                                     Expanded(
                                       flex: 3,
                                       child: Center(
                                         child: TextButton(
-                                            style: TextButton.styleFrom(
-                                              foregroundColor:
-                                                  !_selectedServices.any(
-                                                          (item) =>
-                                                              item.service.id ==
-                                                              service.id)
-                                                      ? const Color.fromARGB(
-                                                          255, 179, 168, 168)
-                                                      : const Color.fromARGB(
-                                                          255, 224, 36, 96),
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal: 20,
-                                                      vertical: 12),
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(10),
-                                              ),
-                                            ),
-                                            onPressed: () {
-                                              setState(() {
-                                                if (_selectedServices.any(
-                                                    (item) =>
-                                                        item.service.id ==
-                                                        service.id)) {
-                                                  _selectedServices.removeWhere(
+                                          style: TextButton.styleFrom(
+                                            foregroundColor:
+                                                !_selectedServices.any(
                                                       (item) =>
                                                           item.service.id ==
-                                                          service.id);
+                                                          service.id,
+                                                    )
+                                                    ? const Color.fromARGB(
+                                                      255,
+                                                      179,
+                                                      168,
+                                                      168,
+                                                    )
+                                                    : const Color.fromARGB(
+                                                      255,
+                                                      224,
+                                                      36,
+                                                      96,
+                                                    ),
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 20,
+                                              vertical: 12,
+                                            ),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                            ),
+                                          ),
+                                          onPressed: () {
+                                            setState(() {
+                                              if (_selectedServices.any(
+                                                (item) =>
+                                                    item.service.id ==
+                                                    service.id,
+                                              )) {
+                                                _selectedServices.removeWhere(
+                                                  (item) =>
+                                                      item.service.id ==
+                                                      service.id,
+                                                );
+                                              } else {
+                                                if (service.variants == null ||
+                                                    service.variants!.isEmpty) {
+                                                  _selectedServices.add(
+                                                    TimeReserveItem(
+                                                      service: service,
+                                                      price: service.price,
+                                                    ),
+                                                  );
                                                 } else {
-                                                  if (service.variants ==
-                                                          null ||
-                                                      service
-                                                          .variants!.isEmpty) {
-                                                    _selectedServices.add(
-                                                        TimeReserveItem(
-                                                            service: service,
-                                                            price:
-                                                                service.price));
-                                                  } else {
-                                                    showDialog(
-                                                        context: context,
-                                                        builder: (BuildContext
-                                                            context) {
-                                                          return AlertDialog(
-                                                            title: const Text(
-                                                                'Variants'),
-                                                            content: Column(
-                                                              mainAxisSize:
-                                                                  MainAxisSize
-                                                                      .min,
-                                                              children: service
-                                                                  .variants!
-                                                                  .map(
-                                                                      (variant) {
+                                                  showDialog(
+                                                    context: context,
+                                                    builder: (
+                                                      BuildContext context,
+                                                    ) {
+                                                      return AlertDialog(
+                                                        title: const Text(
+                                                          'Variants',
+                                                        ),
+                                                        content: Column(
+                                                          mainAxisSize:
+                                                              MainAxisSize.min,
+                                                          children:
+                                                              service.variants!.map((
+                                                                variant,
+                                                              ) {
                                                                 return Card(
-                                                                    child:
-                                                                        Padding(
-                                                                  padding:
-                                                                      const EdgeInsets
-                                                                          .all(
-                                                                          16),
-                                                                  child: Row(
-                                                                    mainAxisAlignment:
-                                                                        MainAxisAlignment
-                                                                            .spaceBetween,
-                                                                    children: [
-                                                                      Column(
-                                                                        mainAxisAlignment:
-                                                                            MainAxisAlignment.start,
-                                                                        crossAxisAlignment:
-                                                                            CrossAxisAlignment.start,
-                                                                        children: [
-                                                                          Text(variant
-                                                                              .title),
-                                                                          Text(
-                                                                              '${variant.duration} минут'),
-                                                                          Text(
-                                                                              '${variant.price} ₮'),
-                                                                        ],
-                                                                      ),
-                                                                      TextButton(
-                                                                          onPressed:
-                                                                              () {
+                                                                  child: Padding(
+                                                                    padding:
+                                                                        const EdgeInsets.all(
+                                                                          16,
+                                                                        ),
+                                                                    child: Row(
+                                                                      mainAxisAlignment:
+                                                                          MainAxisAlignment
+                                                                              .spaceBetween,
+                                                                      children: [
+                                                                        Column(
+                                                                          mainAxisAlignment:
+                                                                              MainAxisAlignment.start,
+                                                                          crossAxisAlignment:
+                                                                              CrossAxisAlignment.start,
+                                                                          children: [
+                                                                            Text(
+                                                                              variant.title,
+                                                                            ),
+                                                                            Text(
+                                                                              '${variant.duration} минут',
+                                                                            ),
+                                                                            Text(
+                                                                              '${variant.price} ₮',
+                                                                            ),
+                                                                          ],
+                                                                        ),
+                                                                        TextButton(
+                                                                          onPressed: () {
                                                                             setState(() {
-                                                                              _selectedServices.add(TimeReserveItem(service: service, price: variant.price, variant: variant));
-                                                                              Navigator.of(context).pop();
+                                                                              _selectedServices.add(
+                                                                                TimeReserveItem(
+                                                                                  service:
+                                                                                      service,
+                                                                                  price:
+                                                                                      variant.price,
+                                                                                  variant:
+                                                                                      variant,
+                                                                                ),
+                                                                              );
+                                                                              Navigator.of(
+                                                                                context,
+                                                                              ).pop();
                                                                             });
                                                                           },
-                                                                          child:
-                                                                              const Icon(Icons.add)),
-                                                                    ],
+                                                                          child: const Icon(
+                                                                            Icons.add,
+                                                                          ),
+                                                                        ),
+                                                                      ],
+                                                                    ),
                                                                   ),
-                                                                ));
+                                                                );
                                                               }).toList(),
-                                                            ),
-                                                          );
-                                                        });
-                                                  }
-                                                }
-                                              });
-                                            },
-                                            child: Icon(!_selectedServices.any(
-                                                    (item) =>
-                                                        item.service.id ==
-                                                        service.id)
-                                                ? Icons.add
-                                                : Icons.delete)),
-                                      ),
-                                    )
-                                  ],
-                                ));
-                          }).toList(),
-                        ))
-                      ],
-                    ),
-                  )
-                : currentStep == 1
-                    ? Padding(
-                        padding: const EdgeInsets.all(8),
-                        child: GridView.count(
-                          crossAxisCount: 2,
-                          children: _workers.map((worker) {
-                            return Padding(
-                                padding: const EdgeInsets.fromLTRB(2, 2, 2, 2),
-                                child: GestureDetector(
-                                  onTap: () async {
-                                    setState(() {
-                                      selectedWorker = null;
-                                      selectedWorkerId = '';
-                                    });
-                                    await fetchAdditionalFees(worker);
-                                    if (additionalFees.isEmpty) {
-                                      setState(() {
-                                        selectedWorker = worker;
-                                        selectedWorkerId = worker.id;
-                                      });
-                                    } else {
-                                      showDialog(
-                                          context: context,
-                                          barrierDismissible: false,
-                                          builder: (BuildContext context) {
-                                            return AlertDialog(
-                                                title: const Text(
-                                                  "Нэмэлт төлбөрүүд",
-                                                  textAlign: TextAlign.center,
-                                                ),
-                                                content: Container(
-                                                  height: 200,
-                                                  width: double.maxFinite,
-                                                  child: Column(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .spaceBetween,
-                                                    children: [
-                                                      Padding(
-                                                        padding:
-                                                            const EdgeInsets
-                                                                .fromLTRB(
-                                                                0, 16, 0, 16),
-                                                        child: Column(
-                                                          children:
-                                                              additionalFees
-                                                                  .map(
-                                                                      (addFee) {
-                                                            return Row(
-                                                              mainAxisAlignment:
-                                                                  MainAxisAlignment
-                                                                      .spaceBetween,
-                                                              children: [
-                                                                Text(addFee
-                                                                    .title),
-                                                                Text(
-                                                                    '${addFee.addPrice}'),
-                                                              ],
-                                                            );
-                                                          }).toList(),
                                                         ),
-                                                      ),
-                                                      Row(
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .spaceAround,
-                                                        children: [
-                                                          OutlinedButton(
-                                                              style:
-                                                                  OutlinedButton
-                                                                      .styleFrom(
-                                                                foregroundColor:
-                                                                    Colors.pink,
-                                                                side: const BorderSide(
-                                                                    color: Colors
-                                                                        .pink,
-                                                                    width: 2),
-                                                              ),
-                                                              onPressed: () {
-                                                                Navigator.of(
-                                                                        context)
-                                                                    .pop();
-                                                              },
-                                                              child: const Text(
-                                                                  'Цуцлах')),
-                                                          ElevatedButton(
-                                                              style: ElevatedButton.styleFrom(
-                                                                  backgroundColor:
-                                                                      Colors
-                                                                          .pink,
-                                                                  foregroundColor:
-                                                                      Colors
-                                                                          .white),
-                                                              onPressed: () {
-                                                                setState(() {
-                                                                  selectedWorkerId =
-                                                                      worker.id;
-                                                                  selectedWorker =
-                                                                      worker;
-                                                                });
-                                                                Navigator.of(
-                                                                        context)
-                                                                    .pop();
-                                                              },
-                                                              child: const Text(
-                                                                  'Зөвшөөрөх'))
-                                                        ],
-                                                      )
-                                                    ],
-                                                  ),
-                                                ));
-                                          });
-                                    }
-                                  },
-                                  child: Card(
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                        side: BorderSide(
-                                          color: selectedWorkerId == worker.id
-                                              ? Colors.pink
-                                              : Colors.grey,
-                                          width: selectedWorkerId == worker.id
-                                              ? 2
-                                              : 1,
-                                        )),
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      children: [
-                                        ClipOval(
-                                          child: Image.network(
-                                            worker.avatar,
-                                            height: 80,
-                                            width: 80,
-                                            fit: BoxFit.cover,
+                                                      );
+                                                    },
+                                                  );
+                                                }
+                                              }
+                                            });
+                                          },
+                                          child: Icon(
+                                            !_selectedServices.any(
+                                                  (item) =>
+                                                      item.service.id ==
+                                                      service.id,
+                                                )
+                                                ? Icons.add
+                                                : Icons.delete,
                                           ),
                                         ),
-                                        const SizedBox(height: 6),
-                                        Text(
-                                          worker.firstName,
-                                          style: const TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ));
-                          }).toList(),
-                        ),
-                      )
-                    : Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: [
-                                Text(
-                                  DateFormat('y оны MM сар')
-                                      .format(currentDate),
-                                  style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                                Row(
-                                  children: [
-                                    IconButton(
-                                      onPressed: () {
-                                        currentDate.isAtSameMomentAs(DateTime.now()) || currentDate.isBefore(DateTime.now()) ? 
-                                        null :
-                                        setState(() {
-                                          currentDate = currentDate.subtract(
-                                              const Duration(days: 7));
-                                        });
-                                      },
-                                      icon: const Icon(Icons.chevron_left),
-                                    ),
-                                    IconButton(
-                                      onPressed: () {
-                                        setState(() {
-                                          currentDate = currentDate
-                                              .add(const Duration(days: 7));
-                                        });
-                                      },
-                                      icon: const Icon(Icons.chevron_right),
+                                      ),
                                     ),
                                   ],
                                 ),
-                              ],
-                            ),
-                            const SizedBox(
-                              height: 10,
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceEvenly,
-                                    children: currentWeekDates
-                                        .map((date) => GestureDetector(
-                                              child: Card(
-                                                shape: RoundedRectangleBorder(
-                                                  side: BorderSide(
-                                                    color: selectedDate !=
-                                                            DateFormat(
-                                                                    'yyyy-MM-dd')
-                                                                .format(date)
-                                                        ? const Color.fromARGB(
-                                                            255, 179, 168, 168)
-                                                        : const Color.fromARGB(
-                                                            255, 224, 36, 96),
-                                                    width: selectedDate !=
-                                                            DateFormat(
-                                                                    'yyyy-MM-dd')
-                                                                .format(date)
-                                                        ? 1
-                                                        : 2,
+                              );
+                            }).toList(),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+              : currentStep == 1
+              ? Padding(
+                padding: const EdgeInsets.all(8),
+                child: GridView.count(
+                  crossAxisCount: 2,
+                  children:
+                      _workers.map((worker) {
+                        return Padding(
+                          padding: const EdgeInsets.fromLTRB(2, 2, 2, 2),
+                          child: GestureDetector(
+                            onTap: () async {
+                              setState(() {
+                                selectedWorker = null;
+                                selectedWorkerId = '';
+                              });
+                              await fetchAdditionalFees(worker);
+                              if (additionalFees.isEmpty) {
+                                setState(() {
+                                  selectedWorker = worker;
+                                  selectedWorkerId = worker.id;
+                                });
+                              } else {
+                                showDialog(
+                                  context: context,
+                                  barrierDismissible: false,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      title: const Text(
+                                        "Нэмэлт төлбөрүүд",
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      content: Container(
+                                        height: 200,
+                                        width: double.maxFinite,
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.fromLTRB(
+                                                    0,
+                                                    16,
+                                                    0,
+                                                    16,
                                                   ),
-                                                  borderRadius:
-                                                      BorderRadius.circular(22),
-                                                ),
-                                                child: CircleAvatar(
-                                                  radius: 22,
-                                                  backgroundColor: Colors.white,
-                                                  child: Text(
-                                                    '${date.day}',
-                                                    style: const TextStyle(
-                                                        color: Colors.black),
-                                                  ),
-                                                ),
+                                              child: Column(
+                                                children:
+                                                    additionalFees.map((
+                                                      addFee,
+                                                    ) {
+                                                      return Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .spaceBetween,
+                                                        children: [
+                                                          Text(addFee.title),
+                                                          Text(
+                                                            '${addFee.addPrice}',
+                                                          ),
+                                                        ],
+                                                      );
+                                                    }).toList(),
                                               ),
-                                              onTap: () {
-                                                selectedDate =
-                                                    DateFormat('yyyy-MM-dd')
-                                                        .format(date);
-                                                fetchPossibleTimes();
-                                              },
-                                            ))
-                                        .toList(),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 10),
-                            loadingPossibleTimes
-                                ? Expanded(
-                                    child: Container(
-                                      alignment: Alignment.center,
-                                      child: const CircularProgressIndicator(),
-                                    ),
-                                  )
-                                : _possibleTimes.isEmpty
-                                    ? Expanded(
-                                        child: Container(
-                                            padding: const EdgeInsets.only(
-                                                bottom: 120),
-                                            alignment: Alignment.center,
-                                            child: const Text(
-                                                'Тухайн өдөр цаг байхгүй байна.')),
-                                      )
-                                    : Expanded(
-                                        child: GridView.count(
-                                        crossAxisCount: 3,
-                                        children: _possibleTimes.map((time) {
-                                          return GestureDetector(
-                                            onTap: () {
-                                              setState(() {
-                                                selectedTime = time;
-                                              });
-                                            },
-                                            child: Card(
-                                                shape: RoundedRectangleBorder(
-                                                  side: BorderSide(
-                                                    color: selectedTime != time
-                                                        ? const Color.fromARGB(
-                                                            255, 179, 168, 168)
-                                                        : const Color.fromARGB(
-                                                            255, 224, 36, 96),
-                                                    width: selectedTime != time
-                                                        ? 1
-                                                        : 2,
-                                                  ),
-                                                  borderRadius:
-                                                      BorderRadius.circular(10),
+                                            ),
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.spaceAround,
+                                              children: [
+                                                OutlinedButton(
+                                                  style:
+                                                      OutlinedButton.styleFrom(
+                                                        foregroundColor:
+                                                            Colors.pink,
+                                                        side: const BorderSide(
+                                                          color: Colors.pink,
+                                                          width: 2,
+                                                        ),
+                                                      ),
+                                                  onPressed: () {
+                                                    Navigator.of(context).pop();
+                                                  },
+                                                  child: const Text('Цуцлах'),
                                                 ),
-                                                child: Center(
-                                                  child: Text(time),
-                                                )),
-                                          );
-                                        }).toList(),
-                                      ))
+                                                ElevatedButton(
+                                                  style:
+                                                      ElevatedButton.styleFrom(
+                                                        backgroundColor:
+                                                            Colors.pink,
+                                                        foregroundColor:
+                                                            Colors.white,
+                                                      ),
+                                                  onPressed: () {
+                                                    setState(() {
+                                                      selectedWorkerId =
+                                                          worker.id;
+                                                      selectedWorker = worker;
+                                                    });
+                                                    Navigator.of(context).pop();
+                                                  },
+                                                  child: const Text(
+                                                    'Зөвшөөрөх',
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                );
+                              }
+                            },
+                            child: Card(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                side: BorderSide(
+                                  color:
+                                      selectedWorkerId == worker.id
+                                          ? Colors.pink
+                                          : Colors.grey,
+                                  width: selectedWorkerId == worker.id ? 2 : 1,
+                                ),
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  ClipOval(
+                                    child: Image.network(
+                                      worker.avatar,
+                                      height: 80,
+                                      width: 80,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    worker.firstName,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                ),
+              )
+              : Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        Text(
+                          DateFormat('y оны MM сар').format(currentDate),
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            IconButton(
+                              onPressed: () {
+                                currentDate.isAtSameMomentAs(DateTime.now()) ||
+                                        currentDate.isBefore(DateTime.now())
+                                    ? null
+                                    : setState(() {
+                                      currentDate = currentDate.subtract(
+                                        const Duration(days: 7),
+                                      );
+                                    });
+                              },
+                              icon: const Icon(Icons.chevron_left),
+                            ),
+                            IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  currentDate = currentDate.add(
+                                    const Duration(days: 7),
+                                  );
+                                });
+                              },
+                              icon: const Icon(Icons.chevron_right),
+                            ),
                           ],
                         ),
-                      ));
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children:
+                                currentWeekDates
+                                    .map(
+                                      (date) => GestureDetector(
+                                        child: Card(
+                                          shape: RoundedRectangleBorder(
+                                            side: BorderSide(
+                                              color:
+                                                  selectedDate !=
+                                                          DateFormat(
+                                                            'yyyy-MM-dd',
+                                                          ).format(date)
+                                                      ? const Color.fromARGB(
+                                                        255,
+                                                        179,
+                                                        168,
+                                                        168,
+                                                      )
+                                                      : const Color.fromARGB(
+                                                        255,
+                                                        224,
+                                                        36,
+                                                        96,
+                                                      ),
+                                              width:
+                                                  selectedDate !=
+                                                          DateFormat(
+                                                            'yyyy-MM-dd',
+                                                          ).format(date)
+                                                      ? 1
+                                                      : 2,
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              22,
+                                            ),
+                                          ),
+                                          child: CircleAvatar(
+                                            radius: 22,
+                                            backgroundColor: Colors.white,
+                                            child: Text(
+                                              '${date.day}',
+                                              style: const TextStyle(
+                                                color: Colors.black,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        onTap: () {
+                                          selectedDate = DateFormat(
+                                            'yyyy-MM-dd',
+                                          ).format(date);
+                                          fetchPossibleTimes();
+                                        },
+                                      ),
+                                    )
+                                    .toList(),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    loadingPossibleTimes
+                        ? Expanded(
+                          child: Container(
+                            alignment: Alignment.center,
+                            child: const CircularProgressIndicator(),
+                          ),
+                        )
+                        : _possibleTimes.isEmpty
+                        ? Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.only(bottom: 120),
+                            alignment: Alignment.center,
+                            child: const Text('Тухайн өдөр цаг байхгүй байна.'),
+                          ),
+                        )
+                        : Expanded(
+                          child: GridView.count(
+                            crossAxisCount: 3,
+                            children:
+                                _possibleTimes.map((time) {
+                                  return GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        selectedTime = time;
+                                      });
+                                    },
+                                    child: Card(
+                                      shape: RoundedRectangleBorder(
+                                        side: BorderSide(
+                                          color:
+                                              selectedTime != time
+                                                  ? const Color.fromARGB(
+                                                    255,
+                                                    179,
+                                                    168,
+                                                    168,
+                                                  )
+                                                  : const Color.fromARGB(
+                                                    255,
+                                                    224,
+                                                    36,
+                                                    96,
+                                                  ),
+                                          width: selectedTime != time ? 1 : 2,
+                                        ),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: Center(child: Text(time)),
+                                    ),
+                                  );
+                                }).toList(),
+                          ),
+                        ),
+                  ],
+                ),
+              ),
+    );
   }
 }
 
@@ -964,11 +1160,17 @@ class AdditionalFee {
   final String title;
   final String id;
 
-  AdditionalFee(
-      {required this.addPrice, required this.title, required this.id});
+  AdditionalFee({
+    required this.addPrice,
+    required this.title,
+    required this.id,
+  });
 
   factory AdditionalFee.fromJson(Map<String, dynamic> json) {
     return AdditionalFee(
-        addPrice: json['addPrice'], title: json['title'], id: json['_id']);
+      addPrice: json['addPrice'],
+      title: json['title'],
+      id: json['_id'],
+    );
   }
 }
