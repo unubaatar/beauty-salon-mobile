@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:intl/intl.dart';
+
 import '../../models/service.dart';
 import '../../models/serviceCategory.dart';
 import '../ServiceDetail/serviceDetail.dart';
@@ -129,6 +131,15 @@ class _ServicesPageState extends State<ServicesPage> with SingleTickerProviderSt
                         children: _services.map((service) {
                           return GestureDetector(
                               child: Card(
+                                elevation: 0,
+                                color: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.all(Radius.circular(16)),
+                                  side: BorderSide(
+                                    color: Color.fromARGB(255, 223, 221, 221)  , width: 2
+                                  )
+                                ),
+
                                   child: Column(
                                 children: [
                                   Image.network(
@@ -154,7 +165,7 @@ class _ServicesPageState extends State<ServicesPage> with SingleTickerProviderSt
                                             Text(
                                               service.title,
                                               style: TextStyle(
-                                                  fontSize: 14,
+                                                  fontSize: 15,
                                                   fontWeight: FontWeight.bold),
                                             ),
                                           ],
@@ -163,18 +174,27 @@ class _ServicesPageState extends State<ServicesPage> with SingleTickerProviderSt
                                           height: 1,
                                         ),
                                         Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                           children: [
+                                            
                                             Text(
-                                              'Үнэ:  ${service.price}₮',
+                                              NumberFormat.currency(locale: 'en_US', symbol: '\₮ ').format(service.price),
                                               style: TextStyle(
-                                                  fontSize: 12,
+                                                  fontSize: 14,
                                                   color: Colors.grey.shade800,
                                                   fontWeight: FontWeight.bold),
+                                            ),
+                                            Row(
+                                              children: [
+                                                Icon(Icons.timer , size: 14, ),
+                                                SizedBox(width: 2),
+                                                Text('${service.duration} мин' , style: TextStyle(fontSize: 14),)
+                                              ],
                                             )
                                           ],
                                         ),
                                         const SizedBox(
-                                          height: 1,
+                                          height: 4,
                                         ),
                                         Text(
                                           service.description

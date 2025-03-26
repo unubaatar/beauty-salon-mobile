@@ -78,29 +78,29 @@ class _HomeScreen extends State<HomeScreen> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
-        selectedItemColor: Colors.blue,
+        selectedItemColor: Colors.pink,
         unselectedItemColor: Colors.grey,
         showUnselectedLabels: true,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined),
             activeIcon: Icon(Icons.home),
-            label: 'Home',
+            label: 'Нүүр',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.medical_services_outlined),
             activeIcon: Icon(Icons.medical_services),
-            label: 'Search',
+            label: 'Үйлчилгээ',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.shop_outlined),
             activeIcon: Icon(Icons.shop),
-            label: 'Alerts',
+            label: 'Бүтээгдэхүүн',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.account_circle_outlined),
             activeIcon: Icon(Icons.account_circle),
-            label: 'Profile',
+            label: 'Аккаунт',
           ),
         ],
       ),
