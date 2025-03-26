@@ -1,4 +1,5 @@
 import '../models/productVariant.dart';
+import '../models/productCategory.dart';
 
 class Product {
   final String id;
@@ -6,6 +7,7 @@ class Product {
   final String description;
   List<String> images;
   List<ProductVariant> variants;
+  final ProductCategory category;
   final int price;
   final int? sellPrice;
 
@@ -16,6 +18,7 @@ class Product {
     required this.images,
     required this.price,
     required this.variants,
+    required this.category,
     this.sellPrice,
   });
 
@@ -30,6 +33,7 @@ class Product {
         json['variants'].map((variant) => ProductVariant.fromJson(variant)),
       ),
       sellPrice: json['sellPrice'],
+      category: ProductCategory.fromJson(json['category'])
     );
   }
 }

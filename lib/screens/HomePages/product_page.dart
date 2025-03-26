@@ -5,6 +5,8 @@ import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'dart:math';
 
+import '../ProductDetail/productDetail.dart';
+
 import '../../models/productCategory.dart';
 import '../../models/product.dart';
 
@@ -122,7 +124,7 @@ class _ProductPageState extends State<ProductPage> {
                               _selectedIndex == index
                                   ? Colors.pink
                                   : Colors.white,
-                          side: BorderSide(color: Colors.pink, width: 2.0),
+                          side: BorderSide(color: Colors.pink, width: 1.5),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20.0),
                           ),
@@ -269,8 +271,11 @@ class _ProductPageState extends State<ProductPage> {
                                         child: Chip(
                                           padding: EdgeInsets.all(2),
                                           label: Text(
-                                           '-${(100 - (product.sellPrice! / product.price) * 100).ceil()}%',
-                                            style: TextStyle(fontSize: 11 , fontWeight: FontWeight.bold),
+                                            '-${(100 - (product.sellPrice! / product.price) * 100).ceil()}%',
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                           ),
                                           visualDensity: VisualDensity(
                                             horizontal: 0.0,
@@ -286,7 +291,15 @@ class _ProductPageState extends State<ProductPage> {
                                 ),
                               ),
                               onTap: () {
-                                print('move');
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder:
+                                        (context) => ProductDetail(
+                                          productId: product.id,
+                                        ),
+                                  ),
+                                );
                               },
                             );
                           }).toList(),
