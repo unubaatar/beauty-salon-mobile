@@ -280,7 +280,7 @@ class _ProductDetailState extends State<ProductDetail> {
                                         : TextDecoration.none,
                               ),
                             ),
-
+                        
                         selectedVariant != null
                             ? Text(
                               selectedVariant?.sellPrice != null
