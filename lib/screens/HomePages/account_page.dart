@@ -4,6 +4,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 
+import '../Booking/timeReserveList.dart';
+
 class AccountPage extends StatefulWidget {
   const AccountPage({super.key});
 
@@ -217,6 +219,13 @@ class _AccountPageState extends State<AccountPage> {
           },
           child: const Text("Logout"),
         ),
+        SizedBox(height: 8),
+        ElevatedButton(onPressed: () {
+                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => TimeReserveList()));
+        }, child: Text('Захиалгууд'))
       ],
     );
   }

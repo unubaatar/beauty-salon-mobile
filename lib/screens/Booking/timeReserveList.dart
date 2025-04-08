@@ -19,8 +19,9 @@ class _TimeReserveListState extends State<TimeReserveList> {
 
   Future fetchTimeReserves() async {
     try {
-      final url =
-          Uri.parse('http://10.0.2.2:4004/api/v1/timeReserves/getByCustomer');
+      final url = Uri.parse(
+        'http://10.0.2.2:4004/api/v1/timeReserves/getByCustomer',
+      );
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
@@ -30,9 +31,10 @@ class _TimeReserveListState extends State<TimeReserveList> {
         final jsonData = jsonDecode(response.body);
         setState(() {
           count = jsonData['count'];
-          _timeReserves = (jsonData['rows'] as List)
-              .map((eachItem) => TimeReserve.fromJson(eachItem))
-              .toList();
+          _timeReserves =
+              (jsonData['rows'] as List)
+                  .map((eachItem) => TimeReserve.fromJson(eachItem))
+                  .toList();
         });
       } else {
         print("jiijii");
@@ -50,49 +52,58 @@ class _TimeReserveListState extends State<TimeReserveList> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(title: Text('Цаг захиалгууд') , backgroundColor: Colors.white,),
+      body: Padding(
         padding: const EdgeInsets.all(8),
         child: GridView.count(
           crossAxisCount: 2,
-          children: _timeReserves.map((timeReserve) {
-            return Padding(
-              padding: const EdgeInsets.fromLTRB(4, 4, 4, 4),
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => TimeReservceDetail(
+          children:
+              _timeReserves.map((timeReserve) {
+                return Padding(
+                  padding: const EdgeInsets.fromLTRB(4, 4, 4, 4),
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (context) => TimeReservceDetail(
                                 timeReserveId: timeReserve.id,
-                              )));
-                },
-                child: Card(
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      side: const BorderSide(color: Colors.grey, width: 2)),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const Text(
-                        'Захиалгын дугаар',
-                        style: TextStyle(fontSize: 12),
+                              ),
+                        ),
+                      );
+                    },
+                    child: Card(
+                      color: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        side: const BorderSide(color: Colors.grey, width: 2),
                       ),
-                      Text(
-                        timeReserve.timeReserveNumber,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const Text(
+                            'Захиалгын дугаар',
+                            style: TextStyle(fontSize: 12),
+                          ),
+                          Text(
+                            timeReserve.timeReserveNumber,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 16),
+                          Text('Өдөр: ${timeReserve.dateTitle}'),
+                          Text('Цаг: ${timeReserve.startTime}'),
+                        ],
                       ),
-                      const SizedBox(
-                        height: 16,
-                      ),
-                      Text('Өдөр: ${timeReserve.dateTitle}'),
-                      Text('Цаг: ${timeReserve.startTime}')
-                    ],
+                    ),
                   ),
-                ),
-              ),
-            );
-          }).toList(),
-        ));
+                );
+              }).toList(),
+        ),
+      ),
+    );
   }
 }

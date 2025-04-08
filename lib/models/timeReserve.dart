@@ -57,7 +57,7 @@ class ServiceItem {
   factory ServiceItem.fromJson(Map<String, dynamic> json) {
     return ServiceItem(
       service: Service.fromJson(json['service']),
-      variant: ServiceVariant.fromJson(json['variant']),
+      variant: json['variant'] != null ? ServiceVariant.fromJson(json['variant']) : null,  
       price: json['price']);
   }
 }
