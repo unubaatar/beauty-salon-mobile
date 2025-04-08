@@ -4,9 +4,11 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'dart:math';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'package:flutter/material.dart';
 import 'package:test/models/productVariant.dart';
+
 import '../../models/product.dart';
 
 class ProductDetail extends StatefulWidget {
@@ -22,6 +24,46 @@ class _ProductDetailState extends State<ProductDetail> {
   late Product product;
   bool loading = true;
   late List<bool> _selectedVariants;
+  int selectedQty = 1;
+
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
+
+Future addItemCart() async {
+  try {
+    String? customerId = await _secureStorage.read(key: 'customerId');
+
+    final chosenSellPrice = selectedVariant != null
+        ? selectedVariant!.sellPrice
+        : product.sellPrice;
+
+    final url = Uri.parse('http://10.0.2.2:4004/api/v1/cartItems/create');
+
+    final Map<String, dynamic> body = {
+      'customer': customerId,
+      'product': product.id,
+      if(selectedVariant != null)'variant': selectedVariant?.id,
+      'qty': selectedQty,
+      'price': selectedVariant?.price ?? product.price,
+      if (chosenSellPrice != null) 'sellPrice': chosenSellPrice,
+    };
+
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode(body),
+    );
+
+    if (response.statusCode == 201) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Амжилттай үүслээ')),
+      );
+    } else {
+      print('jiijii');
+    }
+  } catch (err) {
+    print(err);
+  }
+}
 
   Future fetchProduct() async {
     try {
@@ -214,6 +256,43 @@ class _ProductDetailState extends State<ProductDetail> {
                           ),
                         const SizedBox(height: 16),
                         Text(product.description),
+                        const SizedBox(height: 16),
+                        DropdownButtonFormField<int>(
+                          dropdownColor: Colors.white,
+                          decoration: InputDecoration(
+                            labelStyle: TextStyle(
+                              color: Colors.grey,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            labelText: 'Тоо ширхэг',
+                            border: OutlineInputBorder(),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8.0),
+                              borderSide: BorderSide(
+                                color: Colors.grey,
+                                width: 1,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8.0),
+                              borderSide: BorderSide(
+                                color: Colors.grey,
+                                width: 1,
+                              ),
+                            ),
+                          ),
+                          value: selectedQty,
+                          items:
+                              [1, 2, 3, 4, 5].map((int value) {
+                                return DropdownMenuItem<int>(
+                                  value: value,
+                                  child: Text(value.toString()),
+                                );
+                              }).toList(),
+                          onChanged: (int? newValue) {
+                            selectedQty = newValue!;
+                          },
+                        ),
                       ],
                     ),
                   ),
@@ -280,7 +359,7 @@ class _ProductDetailState extends State<ProductDetail> {
                                         : TextDecoration.none,
                               ),
                             ),
-                        
+
                         selectedVariant != null
                             ? Text(
                               selectedVariant?.sellPrice != null
@@ -315,7 +394,9 @@ class _ProductDetailState extends State<ProductDetail> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.pink,
                       ),
-                      onPressed: () {},
+                      onPressed: () {
+                        addItemCart();
+                      },
                       child: Text(
                         'Сагслах',
                         style: TextStyle(color: Colors.white),
