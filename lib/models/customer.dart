@@ -4,6 +4,7 @@ class Customer {
   final String lastName;
   final String phone;
   final String email;
+  final String avatar;
 
   Customer({
     required this.id,
@@ -11,14 +12,17 @@ class Customer {
     required this.lastName,
     required this.phone,
     required this.email,
+    required this.avatar,
   });
 
   factory Customer.fromJson(Map<String, dynamic> json) {
     return Customer(
-        firstName: json['firstName'],
-        lastName: json['lastName'],
-        phone: json['phone'],
-        email: json['email'],
-        id: json['_id']);
+      firstName: json['firstName'],
+      lastName: json['lastName'],
+      phone: json['phone'],
+      email: json['email'],
+      id: json['_id'],
+      avatar: json['avatar'],
+    );
   }
 }

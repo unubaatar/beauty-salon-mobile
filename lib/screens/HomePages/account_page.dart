@@ -5,6 +5,9 @@ import 'dart:convert';
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 
 import '../Booking/timeReserveList.dart';
+import '../home_screen.dart';
+
+import '../../models/customer.dart';
 
 class AccountPage extends StatefulWidget {
   const AccountPage({super.key});
@@ -19,6 +22,9 @@ class _AccountPageState extends State<AccountPage> {
   final _passwordController = TextEditingController();
   String? customerId;
   bool loading = true;
+  bool profileLoading = true;
+
+  Customer? customer;
 
   void checkToken() async {
     try {
@@ -41,6 +47,10 @@ class _AccountPageState extends State<AccountPage> {
           return;
         } else {
           print("Token is valid");
+          String? storedcustomerId = await _secureStorage.read(
+            key: 'customerId',
+          );
+          await fetchCustomerDetails(storedcustomerId);
         }
       } catch (e) {
         print("Error decoding token: $e");
@@ -50,9 +60,29 @@ class _AccountPageState extends State<AccountPage> {
     }
   }
 
-  Future<void> _saveCredentials(String customerId, String token) async {
-    await _secureStorage.write(key: 'customerId', value: customerId);
-    await _secureStorage.write(key: 'token', value: token);
+  Future fetchCustomerDetails(storedcustomerId) async {
+    try {
+      final url = Uri.parse('http://10.0.2.2:4004/api/v1/customers/getById');
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'_id': storedcustomerId}),
+      );
+      if (response.statusCode == 200) {
+        final jsonData = jsonDecode(response.body);
+        setState(() {
+          customer = Customer.fromJson(jsonData);
+        });
+        print('oldloo');
+      } else {
+        print('jiijiii');
+      }
+      setState(() {
+        profileLoading = false;
+      });
+    } catch (err) {
+      print(err);
+    }
   }
 
   Future login() async {
@@ -68,10 +98,21 @@ class _AccountPageState extends State<AccountPage> {
       );
       if (response.statusCode == 200) {
         final jsonData = jsonDecode(response.body);
-        _saveCredentials(jsonData['customer'], jsonData['token']);
+
+        await _secureStorage.write(
+          key: 'customerId',
+          value: jsonData['customer'],
+        );
+        await _secureStorage.write(key: 'token', value: jsonData['token']);
+        await _secureStorage.write(key: 'name', value: jsonData['name']);
+        await _secureStorage.write(key: 'avatar', value: jsonData['avatar']);
         setState(() {
           customerId = jsonData['customer'];
         });
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomeScreen()),
+        );
       } else {
         print("Login failed");
       }
@@ -97,17 +138,11 @@ class _AccountPageState extends State<AccountPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.blueGrey.shade50,
-      child: SafeArea(
-        child:
-            loading
-                ? Center(child: CircularProgressIndicator())
-                : customerId == null
-                ? _buildLoginWidget()
-                : _buildAccountSettingsWidget(),
-      ),
-    );
+    return loading
+        ? Center(child: CircularProgressIndicator(backgroundColor: Colors.pink))
+        : customerId == null
+        ? Center(child: _buildLoginWidget())
+        : Center(child: _buildAccountSettingsWidget());
   }
 
   Widget _buildLoginWidget() {
@@ -115,62 +150,98 @@ class _AccountPageState extends State<AccountPage> {
       children: [
         Expanded(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(24.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const Padding(
-                  padding: EdgeInsets.only(bottom: 40.0),
-                  child: Icon(
-                    Icons.account_circle_rounded,
-                    size: 100,
-                    color: Colors.teal,
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 20.0),
+                  child: Image.network(
+                    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSIIWju1ABYrb5DTkZ8mbDcaAekrgKnjmf0CA&s",
+                    width: 150,
+                    height: 150,
+                    fit: BoxFit.cover,
                   ),
                 ),
+    
+                Text('Гоо сайхны салоны систем' , style: TextStyle(fontSize: 24 , fontWeight: FontWeight.bold),),
+                            SizedBox(height: 32,),
                 TextField(
                   controller: _phoneController,
                   decoration: InputDecoration(
-                    labelText: "Username",
-                    prefixIcon: const Icon(Icons.person),
-                    border: OutlineInputBorder(
+                    labelText: "Утас",
+                    labelStyle: TextStyle(
+                      color:
+                          Colors.grey, 
+                    ),
+                    prefixIcon: const Icon(
+                      Icons.person,
+                      color:   Colors.grey, 
+                    ),
+                        enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12.0),
-                      borderSide: BorderSide(color: Colors.teal.shade200),
+                      borderSide: const BorderSide(
+                        color:   Colors.grey, 
+                        width: 1,
+                      ),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12.0),
-                      borderSide: BorderSide(color: Colors.teal.shade500),
+                      borderSide: BorderSide(
+                        color:   Colors.grey, 
+                      ),
                     ),
                     filled: true,
                     fillColor: Colors.white,
                   ),
                 ),
+
                 const SizedBox(height: 16),
-                // Password TextField
                 TextField(
                   controller: _passwordController,
                   obscureText: true,
                   decoration: InputDecoration(
-                    labelText: "Password",
-                    prefixIcon: const Icon(Icons.lock),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12.0),
-                      borderSide: BorderSide(color: Colors.teal.shade200),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12.0),
-                      borderSide: BorderSide(color: Colors.teal.shade500),
-                    ),
+                    labelText: "Нууц үг",
+                    labelStyle: TextStyle(color:   Colors.grey, ),
+                    prefixIcon: const Icon(Icons.lock, color:   Colors.grey, ),
                     filled: true,
                     fillColor: Colors.white,
+
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                      borderSide: const BorderSide(
+                        color:   Colors.grey,
+                        width: 1,
+                      ),
+                    ),
+
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                      borderSide: const BorderSide(
+                        color:   Colors.grey, 
+                        width: 1,
+                      ),
+                    ),
+
+                    errorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16.0),
+                      borderSide: const BorderSide(color:   Colors.grey,  width: 1),
+                    ),
+
+                    focusedErrorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                      borderSide: const BorderSide(color:   Colors.grey,  width: 1),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 24),
-                // Login Button
                 ElevatedButton(
                   onPressed: () {
                     login();
                   },
                   style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.pink,
+                    foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12.0),
                     ),
@@ -178,9 +249,10 @@ class _AccountPageState extends State<AccountPage> {
                       vertical: 16.0,
                       horizontal: 32.0,
                     ),
+                    minimumSize: Size(double.infinity, 48)
                   ),
                   child: const Text(
-                    "Login",
+                    "Нэвтрэх",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -193,40 +265,209 @@ class _AccountPageState extends State<AccountPage> {
     );
   }
 
-  // Account Settings widget UI
   Widget _buildAccountSettingsWidget() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const Icon(Icons.account_circle_rounded, size: 100, color: Colors.teal),
-        const SizedBox(height: 16),
-        Text(
-          'Welcome, User $customerId',
-          style: const TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            color: Colors.teal,
+    return profileLoading
+        ? Center(child: CircularProgressIndicator(backgroundColor: Colors.pink))
+        : SingleChildScrollView(
+          child: Column(
+            children: [
+              ClipOval(
+                child: Image.network(
+                  customer!.avatar,
+                  width: 200,
+                  height: 200,
+                  fit: BoxFit.cover,
+                ),
+              ),
+              SizedBox(height: 32),
+
+              Text(
+                '${customer!.firstName} ${customer!.lastName}',
+                style: TextStyle(fontSize: 24),
+              ),
+              SizedBox(height: 8),
+
+              Padding(
+                padding: EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.phone, size: 24),
+                        SizedBox(width: 8),
+                        Text('Утас: ', style: TextStyle(fontSize: 20)),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            customer!.phone,
+                            style: TextStyle(fontSize: 20),
+                            textAlign: TextAlign.end,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Icon(Icons.mail, size: 24),
+                        SizedBox(width: 8),
+                        Text('Мейл: ', style: TextStyle(fontSize: 20)),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            customer!.email,
+                            style: TextStyle(fontSize: 20),
+                            textAlign: TextAlign.end,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.all(8),
+                child: GridView.count(
+                  crossAxisCount: 2,
+                  shrinkWrap: true,
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => TimeReserveList(),
+                          ),
+                        );
+                      },
+                      child: Card(
+                        color: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          side: BorderSide(color: Colors.grey, width: 1),
+                        ),
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.punch_clock,
+                                size: 40,
+                                color: Colors.black,
+                              ),
+                              Text(
+                                'Цаг товлолтууд',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.black,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () {},
+                      child: Card(
+                        color: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          side: BorderSide(color: Colors.grey, width: 1),
+                        ),
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.shopping_cart,
+                                size: 40,
+                                color: Colors.black,
+                              ),
+                              Text(
+                                'Бүтээгдэхүүн захиалгууд',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.black,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () {},
+                      child: Card(
+                        color: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          side: BorderSide(color: Colors.grey, width: 1),
+                        ),
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.settings,
+                                size: 40,
+                                color: Colors.black,
+                              ),
+                              Text(
+                                'Тохиргоо',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.black,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () async {
+                        await _secureStorage.deleteAll();
+                        setState(() {
+                          customerId = null;
+                        });
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (context) => HomeScreen()),
+                        );
+                      },
+                      child: Card(
+                        color: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          side: BorderSide(color: Colors.grey, width: 1),
+                        ),
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.logout, size: 40, color: Colors.black),
+                              Text(
+                                'Гарах',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.black,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ),
-        const SizedBox(height: 24),
-        ElevatedButton(
-          onPressed: () async {
-            await _secureStorage.deleteAll();
-            setState(() {
-              customerId = null;
-            });
-            print("Logged out successfully");
-          },
-          child: const Text("Logout"),
-        ),
-        SizedBox(height: 8),
-        ElevatedButton(onPressed: () {
-                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => TimeReserveList()));
-        }, child: Text('Захиалгууд'))
-      ],
-    );
+        );
   }
 }
