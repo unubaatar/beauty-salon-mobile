@@ -38,6 +38,7 @@ Future addItemCart() async {
 
     final url = Uri.parse('http://10.0.2.2:4004/api/v1/cartItems/create');
 
+
     final Map<String, dynamic> body = {
       'customer': customerId,
       'product': product.id,
@@ -58,6 +59,7 @@ Future addItemCart() async {
         SnackBar(content: Text('Амжилттай үүслээ')),
       );
     } else {
+      print(response.body);
       print('jiijii');
     }
   } catch (err) {
