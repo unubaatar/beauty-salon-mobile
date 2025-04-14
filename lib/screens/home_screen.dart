@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:intl/intl.dart';
+import '../screens/Order/orderCreate.dart';
 
 import '../models/cartItem.dart';
 
@@ -140,12 +141,12 @@ class _HomeScreen extends State<HomeScreen> {
         headers: {'Content-Type': 'application/json'},
         body: json.encode({'_id': cartItemId}),
       );
-      if(response.statusCode == 200) {
+      if (response.statusCode == 200) {
         print('deleted successfully');
       } else {
         print("jiijii");
       }
-    } catch(err) {
+    } catch (err) {
       print(err);
     }
   }
@@ -561,17 +562,25 @@ class _HomeScreen extends State<HomeScreen> {
                                                                 child: ElevatedButton(
                                                                   onPressed: () {
                                                                     modalSetState(() {
-                                                                       if(cartItem.sellPrice != null) {
-                                                                        cartTotalPrice -= cartItem.sellPrice! * cartItem.qty;
-                                                                       } else {
-                                                                        cartTotalPrice -= cartItem.price * cartItem.qty;
-                                                                       }
+                                                                      if (cartItem
+                                                                              .sellPrice !=
+                                                                          null) {
+                                                                        cartTotalPrice -=
+                                                                            cartItem.sellPrice! *
+                                                                            cartItem.qty;
+                                                                      } else {
+                                                                        cartTotalPrice -=
+                                                                            cartItem.price *
+                                                                            cartItem.qty;
+                                                                      }
                                                                       _cartItems
                                                                           .remove(
                                                                             cartItem,
                                                                           );
-                                                                      deleteCartItem(cartItem.id);
-                                                                       
+                                                                      deleteCartItem(
+                                                                        cartItem
+                                                                            .id,
+                                                                      );
                                                                     });
                                                                   },
                                                                   style: ElevatedButton.styleFrom(
@@ -650,7 +659,14 @@ class _HomeScreen extends State<HomeScreen> {
                                       backgroundColor: Colors.pink,
                                       foregroundColor: Colors.white,
                                     ),
-                                    onPressed: () {},
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => OrderCreate(),
+                                        ),
+                                      );
+                                    },
                                     child: Text(
                                       'Захиалга үүсгэх',
                                       style: TextStyle(fontSize: 20),

@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 
 import '../Booking/timeReserveList.dart';
+import '../Order/orderList.dart';
 import '../home_screen.dart';
 
 import '../../models/customer.dart';
@@ -163,33 +164,28 @@ class _AccountPageState extends State<AccountPage> {
                     fit: BoxFit.cover,
                   ),
                 ),
-    
-                Text('Гоо сайхны салоны систем' , style: TextStyle(fontSize: 24 , fontWeight: FontWeight.bold),),
-                            SizedBox(height: 32,),
+
+                Text(
+                  'Гоо сайхны салоны систем',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 32),
                 TextField(
                   controller: _phoneController,
                   decoration: InputDecoration(
                     labelText: "Утас",
-                    labelStyle: TextStyle(
-                      color:
-                          Colors.grey, 
-                    ),
-                    prefixIcon: const Icon(
-                      Icons.person,
-                      color:   Colors.grey, 
-                    ),
-                        enabledBorder: OutlineInputBorder(
+                    labelStyle: TextStyle(color: Colors.grey),
+                    prefixIcon: const Icon(Icons.person, color: Colors.grey),
+                    enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12.0),
                       borderSide: const BorderSide(
-                        color:   Colors.grey, 
+                        color: Colors.grey,
                         width: 1,
                       ),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12.0),
-                      borderSide: BorderSide(
-                        color:   Colors.grey, 
-                      ),
+                      borderSide: BorderSide(color: Colors.grey),
                     ),
                     filled: true,
                     fillColor: Colors.white,
@@ -202,15 +198,15 @@ class _AccountPageState extends State<AccountPage> {
                   obscureText: true,
                   decoration: InputDecoration(
                     labelText: "Нууц үг",
-                    labelStyle: TextStyle(color:   Colors.grey, ),
-                    prefixIcon: const Icon(Icons.lock, color:   Colors.grey, ),
+                    labelStyle: TextStyle(color: Colors.grey),
+                    prefixIcon: const Icon(Icons.lock, color: Colors.grey),
                     filled: true,
                     fillColor: Colors.white,
 
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12.0),
                       borderSide: const BorderSide(
-                        color:   Colors.grey,
+                        color: Colors.grey,
                         width: 1,
                       ),
                     ),
@@ -218,19 +214,25 @@ class _AccountPageState extends State<AccountPage> {
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12.0),
                       borderSide: const BorderSide(
-                        color:   Colors.grey, 
+                        color: Colors.grey,
                         width: 1,
                       ),
                     ),
 
                     errorBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(16.0),
-                      borderSide: const BorderSide(color:   Colors.grey,  width: 1),
+                      borderSide: const BorderSide(
+                        color: Colors.grey,
+                        width: 1,
+                      ),
                     ),
 
                     focusedErrorBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12.0),
-                      borderSide: const BorderSide(color:   Colors.grey,  width: 1),
+                      borderSide: const BorderSide(
+                        color: Colors.grey,
+                        width: 1,
+                      ),
                     ),
                   ),
                 ),
@@ -249,7 +251,7 @@ class _AccountPageState extends State<AccountPage> {
                       vertical: 16.0,
                       horizontal: 32.0,
                     ),
-                    minimumSize: Size(double.infinity, 48)
+                    minimumSize: Size(double.infinity, 48),
                   ),
                   child: const Text(
                     "Нэвтрэх",
@@ -369,7 +371,15 @@ class _AccountPageState extends State<AccountPage> {
                       ),
                     ),
                     GestureDetector(
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (context) => OrderList(customer: customerId),
+                          ),
+                        );
+                      },
                       child: Card(
                         color: Colors.white,
                         shape: RoundedRectangleBorder(
