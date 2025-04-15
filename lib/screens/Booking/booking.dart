@@ -44,8 +44,10 @@ class _BookingPageState extends State<BookingPage>
   int currentStep = 0;
   int totalPrice = 0;
   int totalDuration = 0;
+  int _selectedIndex = 0;
 
   bool loadingPossibleTimes = true;
+  bool loadServices = true;
 
   DateTime currentDate = DateTime.now();
   final List<TimeReserveItem> _selectedServices = [];
@@ -67,11 +69,6 @@ class _BookingPageState extends State<BookingPage>
               (jsonData['rows'] as List)
                   .map((eachCategory) => ServiceCategory.fromJson(eachCategory))
                   .toList();
-          _tabController = TabController(
-            length: _serviceCategories.length,
-            vsync: this,
-          );
-          _tabController?.addListener(_onTabChanged);
           selectedCategoryId =
               _serviceCategories.isNotEmpty ? _serviceCategories[0].id : "";
           fetchServices();
@@ -86,6 +83,9 @@ class _BookingPageState extends State<BookingPage>
 
   Future fetchServices() async {
     try {
+      setState(() {
+        loadServices = true;
+      });
       final url = Uri.parse('http://10.0.2.2:4004/api/v1/services/list');
       final response = await http.post(
         url,
@@ -106,6 +106,9 @@ class _BookingPageState extends State<BookingPage>
       } else {
         print("Error fetching services: ${response.statusCode}");
       }
+      setState(() {
+        loadServices = false;
+      });
     } catch (err) {
       print("Error fetching services: $err");
     }
@@ -262,9 +265,13 @@ class _BookingPageState extends State<BookingPage>
         if (response.statusCode == 200) {
           final jsonData = jsonDecode(response.body);
           String responseTimeReserveId = jsonData['_id'];
-          Navigator.push(
+          Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => TimeReservceDetail( timeReserveId: responseTimeReserveId)),
+            MaterialPageRoute(
+              builder:
+                  (context) =>
+                      TimeReservceDetail(timeReserveId: responseTimeReserveId),
+            ),
           );
         } else {
           print('jiijii');
@@ -334,7 +341,7 @@ class _BookingPageState extends State<BookingPage>
                     if (response.statusCode == 200) {
                       final jsonData = jsonDecode(response.body);
                       _saveCredentials(jsonData['customer'], jsonData['token']);
-                       ScaffoldMessenger.of(context).showSnackBar(
+                      ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text('Амжилттай нэвтэрлээ'),
                           duration: Duration(seconds: 2),
@@ -431,22 +438,6 @@ class _BookingPageState extends State<BookingPage>
     return List.generate(7, (index) => startOfWeek.add(Duration(days: index)));
   }
 
-  void _onTabChanged() {
-    if (_tabController?.indexIsChanging ?? false) {
-      setState(() {
-        selectedCategoryId = _serviceCategories[_tabController!.index].id;
-      });
-      fetchServices();
-    }
-  }
-
-  @override
-  void dispose() {
-    _tabController?.removeListener(_onTabChanged);
-    _tabController?.dispose();
-    super.dispose();
-  }
-
   @override
   void initState() {
     super.initState();
@@ -458,7 +449,11 @@ class _BookingPageState extends State<BookingPage>
     final currentWeekDates = getWeekDates(currentDate);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Booking')),
+      appBar: AppBar(
+        title: const Text('Үйлчилгээний цаг товлох'),
+        backgroundColor: Colors.white,
+      ),
+      backgroundColor: Colors.white,
       floatingActionButton: Padding(
         padding: const EdgeInsets.only(bottom: 80.0),
         child: ElevatedButton(
@@ -595,231 +590,346 @@ class _BookingPageState extends State<BookingPage>
           _serviceCategories.isEmpty
               ? const Center(child: CircularProgressIndicator())
               : currentStep == 0
-              ? DefaultTabController(
-                length: _serviceCategories.length,
+              ? Padding(
+                padding: EdgeInsets.all(8),
                 child: Column(
                   children: [
-                    TabBar(
-                      controller: _tabController,
-                      isScrollable: true,
-                      indicatorSize: TabBarIndicatorSize.label,
-                      tabAlignment: TabAlignment.center,
-                      tabs:
-                          _serviceCategories.map((category) {
-                            return Tab(text: category.title);
-                          }).toList(),
-                    ),
-                    const SizedBox(height: 20),
-                    Expanded(
-                      child: ListView(
-                        children:
-                            _services.map((service) {
-                              return Card(
-                                shape: RoundedRectangleBorder(
-                                  side: BorderSide(
-                                    color:
-                                        !_selectedServices.any(
-                                              (item) =>
-                                                  item.service.id == service.id,
-                                            )
-                                            ? const Color.fromARGB(
-                                              255,
-                                              179,
-                                              168,
-                                              168,
-                                            )
-                                            : const Color.fromARGB(
-                                              255,
-                                              224,
-                                              36,
-                                              96,
-                                            ),
-                                    width:
-                                        !_selectedServices.any(
-                                              (item) =>
-                                                  item.service.id == service.id,
-                                            )
-                                            ? 1
-                                            : 2,
+                    Center(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Wrap(
+                          spacing: 10.0,
+                          children: [
+                            ..._serviceCategories.map((category) {
+                              int index = _serviceCategories.indexOf(category);
+                              return ElevatedButton(
+                                onPressed: () async {
+                                  setState(() {
+                                    _selectedIndex = index;
+                                    selectedCategoryId = category.id;
+                                  });
+                                  await fetchServices();
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  minimumSize: Size(120, 40),
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 16.0,
+                                    vertical: 8.0,
                                   ),
-                                  borderRadius: BorderRadius.circular(10),
+                                  backgroundColor:
+                                      _selectedIndex == index
+                                          ? Colors.pink
+                                          : Colors.white,
+                                  side: BorderSide(
+                                    color: Colors.pink,
+                                    width: 1.5,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20.0),
+                                  ),
                                 ),
                                 child: Row(
+                                  mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Expanded(
-                                      flex: 5,
-                                      child: Image.network(
-                                        service.image,
-                                        height: 120,
-                                        fit: BoxFit.cover,
-                                      ),
+                                    Image.network(
+                                      category.image,
+                                      width: 20,
+                                      height: 20,
+                                      fit: BoxFit.cover,
                                     ),
-                                    const Expanded(flex: 1, child: SizedBox()),
-                                    Expanded(
-                                      flex: 5,
-                                      child: Align(
-                                        alignment: Alignment.topLeft,
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.start,
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [Text(service.title)],
-                                        ),
-                                      ),
-                                    ),
-                                    const Expanded(flex: 1, child: SizedBox()),
-                                    Expanded(
-                                      flex: 3,
-                                      child: Center(
-                                        child: TextButton(
-                                          style: TextButton.styleFrom(
-                                            foregroundColor:
-                                                !_selectedServices.any(
-                                                      (item) =>
-                                                          item.service.id ==
-                                                          service.id,
-                                                    )
-                                                    ? const Color.fromARGB(
-                                                      255,
-                                                      179,
-                                                      168,
-                                                      168,
-                                                    )
-                                                    : const Color.fromARGB(
-                                                      255,
-                                                      224,
-                                                      36,
-                                                      96,
-                                                    ),
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 20,
-                                              vertical: 12,
-                                            ),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(10),
-                                            ),
-                                          ),
-                                          onPressed: () {
-                                            setState(() {
-                                              if (_selectedServices.any(
-                                                (item) =>
-                                                    item.service.id ==
-                                                    service.id,
-                                              )) {
-                                                _selectedServices.removeWhere(
-                                                  (item) =>
-                                                      item.service.id ==
-                                                      service.id,
-                                                );
-                                              } else {
-                                                if (service.variants == null ||
-                                                    service.variants!.isEmpty) {
-                                                  _selectedServices.add(
-                                                    TimeReserveItem(
-                                                      service: service,
-                                                      price: service.price,
-                                                    ),
-                                                  );
-                                                } else {
-                                                  showDialog(
-                                                    context: context,
-                                                    builder: (
-                                                      BuildContext context,
-                                                    ) {
-                                                      return AlertDialog(
-                                                        title: const Text(
-                                                          'Variants',
-                                                        ),
-                                                        content: Column(
-                                                          mainAxisSize:
-                                                              MainAxisSize.min,
-                                                          children:
-                                                              service.variants!.map((
-                                                                variant,
-                                                              ) {
-                                                                return Card(
-                                                                  child: Padding(
-                                                                    padding:
-                                                                        const EdgeInsets.all(
-                                                                          16,
-                                                                        ),
-                                                                    child: Row(
-                                                                      mainAxisAlignment:
-                                                                          MainAxisAlignment
-                                                                              .spaceBetween,
-                                                                      children: [
-                                                                        Column(
-                                                                          mainAxisAlignment:
-                                                                              MainAxisAlignment.start,
-                                                                          crossAxisAlignment:
-                                                                              CrossAxisAlignment.start,
-                                                                          children: [
-                                                                            Text(
-                                                                              variant.title,
-                                                                            ),
-                                                                            Text(
-                                                                              '${variant.duration} минут',
-                                                                            ),
-                                                                            Text(
-                                                                              '${variant.price} ₮',
-                                                                            ),
-                                                                          ],
-                                                                        ),
-                                                                        TextButton(
-                                                                          onPressed: () {
-                                                                            setState(() {
-                                                                              _selectedServices.add(
-                                                                                TimeReserveItem(
-                                                                                  service:
-                                                                                      service,
-                                                                                  price:
-                                                                                      variant.price,
-                                                                                  variant:
-                                                                                      variant,
-                                                                                ),
-                                                                              );
-                                                                              Navigator.of(
-                                                                                context,
-                                                                              ).pop();
-                                                                            });
-                                                                          },
-                                                                          child: const Icon(
-                                                                            Icons.add,
-                                                                          ),
-                                                                        ),
-                                                                      ],
-                                                                    ),
-                                                                  ),
-                                                                );
-                                                              }).toList(),
-                                                        ),
-                                                      );
-                                                    },
-                                                  );
-                                                }
-                                              }
-                                            });
-                                          },
-                                          child: Icon(
-                                            !_selectedServices.any(
-                                                  (item) =>
-                                                      item.service.id ==
-                                                      service.id,
-                                                )
-                                                ? Icons.add
-                                                : Icons.delete,
-                                          ),
-                                        ),
+                                    SizedBox(width: 6),
+                                    Text(
+                                      category.title,
+                                      style: TextStyle(
+                                        color:
+                                            _selectedIndex == index
+                                                ? Colors.white
+                                                : Colors.black,
                                       ),
                                     ),
                                   ],
                                 ),
                               );
                             }).toList(),
+                          ],
+                        ),
                       ),
                     ),
+                    SizedBox(height: 8),
+                    loadServices
+                        ? SizedBox(
+                          height: 600,
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              color: Colors.pink,
+                            ),
+                          ),
+                        )
+                        : Expanded(
+                          child: ListView(
+                            children:
+                                _services.map((service) {
+                                  return Card(
+                                    color: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      side: BorderSide(
+                                        color:
+                                            !_selectedServices.any(
+                                                  (item) =>
+                                                      item.service.id ==
+                                                      service.id,
+                                                )
+                                                ? const Color.fromARGB(
+                                                  255,
+                                                  179,
+                                                  168,
+                                                  168,
+                                                )
+                                                : const Color.fromARGB(
+                                                  255,
+                                                  224,
+                                                  36,
+                                                  96,
+                                                ),
+                                        width:
+                                            !_selectedServices.any(
+                                                  (item) =>
+                                                      item.service.id ==
+                                                      service.id,
+                                                )
+                                                ? 1
+                                                : 2,
+                                      ),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          flex: 5,
+                                          child: Image.network(
+                                            service.image,
+                                            height: 120,
+                                            fit: BoxFit.cover,
+                                          ),
+                                        ),
+                                        const Expanded(
+                                          flex: 1,
+                                          child: SizedBox(),
+                                        ),
+                                        Expanded(
+                                          flex: 5,
+                                          child: Align(
+                                            alignment: Alignment.topLeft,
+                                            child: Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.start,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [Text(service.title)],
+                                            ),
+                                          ),
+                                        ),
+                                        const Expanded(
+                                          flex: 1,
+                                          child: SizedBox(),
+                                        ),
+                                        Expanded(
+                                          flex: 3,
+                                          child: Center(
+                                            child: TextButton(
+                                              style: TextButton.styleFrom(
+                                                foregroundColor:
+                                                    !_selectedServices.any(
+                                                          (item) =>
+                                                              item.service.id ==
+                                                              service.id,
+                                                        )
+                                                        ? const Color.fromARGB(
+                                                          255,
+                                                          179,
+                                                          168,
+                                                          168,
+                                                        )
+                                                        : const Color.fromARGB(
+                                                          255,
+                                                          224,
+                                                          36,
+                                                          96,
+                                                        ),
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 20,
+                                                      vertical: 12,
+                                                    ),
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(10),
+                                                ),
+                                              ),
+                                              onPressed: () {
+                                                setState(() {
+                                                  if (_selectedServices.any(
+                                                    (item) =>
+                                                        item.service.id ==
+                                                        service.id,
+                                                  )) {
+                                                    _selectedServices
+                                                        .removeWhere(
+                                                          (item) =>
+                                                              item.service.id ==
+                                                              service.id,
+                                                        );
+                                                  } else {
+                                                    if (service.variants ==
+                                                            null ||
+                                                        service
+                                                            .variants!
+                                                            .isEmpty) {
+                                                      _selectedServices.add(
+                                                        TimeReserveItem(
+                                                          service: service,
+                                                          price: service.price,
+                                                        ),
+                                                      );
+                                                    } else {
+                                                      showModalBottomSheet(
+                                                        backgroundColor:
+                                                            Colors.white,
+                                                        isScrollControlled:
+                                                            true,
+                                                        context: context,
+                                                        shape: const RoundedRectangleBorder(
+                                                          borderRadius:
+                                                              BorderRadius.vertical(
+                                                                top:
+                                                                    Radius.circular(
+                                                                      16,
+                                                                    ),
+                                                              ),
+                                                        ),
+                                                        builder: (
+                                                          BuildContext context,
+                                                        ) {
+                                                          return SizedBox(
+                                                            height: 600,
+                                                            child: Padding(
+                                                              padding:
+                                                                  const EdgeInsets.symmetric(
+                                                                    horizontal:
+                                                                        16,
+                                                                    vertical:
+                                                                        24,
+                                                                  ),
+                                                              child: Column(
+                                                                mainAxisSize:
+                                                                    MainAxisSize
+                                                                        .min,
+                                                                children: [
+                                                                  const Text(
+                                                                    'Төрлүүд',
+                                                                    style: TextStyle(
+                                                                      fontSize:
+                                                                          18,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .bold,
+                                                                    ),
+                                                                  ),
+                                                                  const SizedBox(
+                                                                    height: 16,
+                                                                  ),
+                                                                  ...service.variants!.map((
+                                                                    variant,
+                                                                  ) {
+                                                                    return Card(
+                                                                      color:
+                                                                          Colors
+                                                                              .white,
+                                                                      child: Padding(
+                                                                        padding:
+                                                                            const EdgeInsets.all(
+                                                                              16,
+                                                                            ),
+                                                                        child: Row(
+                                                                          mainAxisAlignment:
+                                                                              MainAxisAlignment.spaceBetween,
+                                                                          children: [
+                                                                            Column(
+                                                                              crossAxisAlignment:
+                                                                                  CrossAxisAlignment.start,
+                                                                              children: [
+                                                                                Text(
+                                                                                  variant.title,
+                                                                                ),
+                                                                                Text(
+                                                                                  '${variant.duration} минут',
+                                                                                ),
+                                                                                // Text(
+                                                                                //   '${variant.price} ₮',
+                                                                                // ),
+                                                                              ],
+                                                                            ),
+                                                                            TextButton(
+                                                                              onPressed: () {
+                                                                                setState(
+                                                                                  () {
+                                                                                    _selectedServices.add(
+                                                                                      TimeReserveItem(
+                                                                                        service:
+                                                                                            service,
+                                                                                        price:
+                                                                                            variant.price,
+                                                                                        variant:
+                                                                                            variant,
+                                                                                      ),
+                                                                                    );
+                                                                                  },
+                                                                                );
+                                                                                Navigator.of(
+                                                                                  context,
+                                                                                ).pop();
+                                                                              },
+                                                                              child: const Icon(
+                                                                                Icons.add,
+                                                                                color:
+                                                                                    Colors.pink,
+                                                                                size:
+                                                                                    24,
+                                                                              ),
+                                                                            ),
+                                                                          ],
+                                                                        ),
+                                                                      ),
+                                                                    );
+                                                                  }).toList(),
+                                                                ],
+                                                              ),
+                                                            ),
+                                                          );
+                                                        },
+                                                      );
+                                                    }
+                                                  }
+                                                });
+                                              },
+                                              child: Icon(
+                                                !_selectedServices.any(
+                                                      (item) =>
+                                                          item.service.id ==
+                                                          service.id,
+                                                    )
+                                                    ? Icons.add
+                                                    : Icons.delete,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }).toList(),
+                          ),
+                        ),
                   ],
                 ),
               )
@@ -839,55 +949,95 @@ class _BookingPageState extends State<BookingPage>
                                 selectedWorkerId = '';
                               });
                               await fetchAdditionalFees(worker);
-                              if (additionalFees.isEmpty) {
-                                setState(() {
-                                  selectedWorker = worker;
-                                  selectedWorkerId = worker.id;
-                                });
-                              } else {
-                                showDialog(
-                                  context: context,
-                                  barrierDismissible: false,
-                                  builder: (BuildContext context) {
-                                    return AlertDialog(
-                                      title: const Text(
-                                        "Нэмэлт төлбөрүүд",
-                                        textAlign: TextAlign.center,
-                                      ),
-                                      content: Container(
-                                        height: 200,
-                                        width: double.maxFinite,
+                              showModalBottomSheet(
+                                backgroundColor: Colors.white,
+                                context: context,
+                                isScrollControlled: true,
+                                shape: const RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.vertical(
+                                    top: Radius.circular(16),
+                                  ),
+                                ),
+                                builder: (BuildContext context) {
+                                  return SizedBox(
+                                    height: 650,
+                                    child: Padding(
+                                      padding:
+                                          MediaQuery.of(context).viewInsets,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                          vertical: 24,
+                                        ),
                                         child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
+                                          mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            Padding(
-                                              padding:
-                                                  const EdgeInsets.fromLTRB(
-                                                    0,
-                                                    16,
-                                                    0,
-                                                    16,
-                                                  ),
-                                              child: Column(
-                                                children:
-                                                    additionalFees.map((
-                                                      addFee,
-                                                    ) {
-                                                      return Row(
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .spaceBetween,
-                                                        children: [
-                                                          Text(addFee.title),
-                                                          Text(
-                                                            '${addFee.addPrice}',
-                                                          ),
-                                                        ],
-                                                      );
-                                                    }).toList(),
+                                            const Text(
+                                              "Үйлчилгээнүүд",
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.bold,
                                               ),
                                             ),
+                                            const SizedBox(height: 16),
+                                            Column(
+                                              children: [
+                                                ..._selectedServices.map((
+                                                  service,
+                                                ) {
+                                                  return Row(
+                                                    children: [
+                                                      Image.network(service.service.image , width: 80, fit: BoxFit.cover,),
+                                                      SizedBox(width: 40,),
+                                                      Column(
+                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                        children: [
+                                                              Text(
+                                                        service.service.title,
+                                                        style: TextStyle(fontSize: 18 , fontWeight: FontWeight.bold),
+                                                      ),
+                                                      if(service.variant !=null) 
+                                                      Text(service.variant!.title),
+                                                              additionalFees.any(
+                                                            (fee) =>
+                                                                fee.id ==
+                                                                service
+                                                                    .service
+                                                                    .id,
+                                                          )
+                                                          ? ((service.variant !=
+                                                                  null
+                                                              ? Text(
+                                                                style: TextStyle(fontSize: 16),
+                                                                NumberFormat.currency(locale: 'en_US', symbol: '₮ ').format(service.variant!.price + additionalFees.firstWhere((fee) => fee.id == service.service.id).addPrice),
+                                                              )
+                                                              : Text(
+                                                                 style: TextStyle(fontSize: 16),
+                                                                NumberFormat.currency(locale: 'en_US', symbol: '₮ ').format(service.variant!.price + additionalFees.firstWhere((fee) => fee.id == service.service.id).addPrice),
+                                                              )))
+                                                          : (service.variant !=
+                                                                  null
+                                                              ? Text(
+                                                                 style: TextStyle(fontSize: 16),
+                                                                NumberFormat.currency(locale: 'en_US', symbol: '₮ ').format(service.variant!.price),
+                                                              )
+                                                              : Text(
+                                                                 style: TextStyle(fontSize: 16),
+                                                                NumberFormat.currency(locale: 'en_US', symbol: '₮ ').format(service.service.price),
+                                                              )),
+                                                        ],
+
+
+                                                      ),
+                                                  
+                                              
+                                                    ],
+                                                  );
+                                                }).toList(),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 24),
                                             Row(
                                               mainAxisAlignment:
                                                   MainAxisAlignment.spaceAround,
@@ -932,12 +1082,13 @@ class _BookingPageState extends State<BookingPage>
                                           ],
                                         ),
                                       ),
-                                    );
-                                  },
-                                );
-                              }
+                                    ),
+                                  );
+                                },
+                              );
                             },
                             child: Card(
+                              color: Colors.white,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10),
                                 side: BorderSide(
@@ -965,6 +1116,15 @@ class _BookingPageState extends State<BookingPage>
                                     worker.firstName,
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2,),
+                                  Text(
+                                    worker.level.level,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13,
+                                      color: Colors.grey
                                     ),
                                   ),
                                 ],

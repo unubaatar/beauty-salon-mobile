@@ -52,10 +52,12 @@ class _OrderDetailState extends State<OrderDetail> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text('Захиалгын дэлгэрэнгүй'),
         backgroundColor: Colors.white,
+         automaticallyImplyLeading: false,
       ),
       body:
           loading

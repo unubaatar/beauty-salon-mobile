@@ -1,3 +1,5 @@
+import '../models/workerLevel.dart';
+
 class Workerlevel {
   final String id;
   final String image;

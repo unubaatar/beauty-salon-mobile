@@ -228,7 +228,7 @@ class _ServicedetailState extends State<Servicedetail> {
                               MaterialPageRoute(
                                   builder: (context) => const BookingPage()));
                         },
-                        child: const Text("Book Now"),
+                        child: const Text("Цаг товлох"),
                         style: ButtonStyle(
                           backgroundColor: MaterialStateProperty.all(
                               const Color.fromARGB(255, 199, 44, 83)),

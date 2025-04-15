@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import '../home_screen.dart';
 
 import '../../models/timeReserve.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -53,39 +54,37 @@ class _TimeReservceDetailState extends State<TimeReservceDetail> {
       appBar: AppBar(
         title: const Text('Захиалгын дэлгэрэнгүй'),
         backgroundColor: Colors.white,
+        automaticallyImplyLeading: false,
       ),
-      body: loading
-          ? const Center(
-              child: CircularProgressIndicator(),
-            )
-          : Center(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  QrImageView(
-                    data:
-                        'http://localhost:4000/timeRequests/${timeReserve?.id}',
-                    size: 200,
-                  ),
-                  const SizedBox(
-                    height: 8,
-                  ),
-                  Text(
-                    '${timeReserve?.timeReserveNumber}',
-                    style: const TextStyle(
-                        fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(
-                    height: 32,
-                  ),
-                  SizedBox(
-                    width: 350,
-                    child: Card(
+      body:
+          loading
+              ? const Center(child: CircularProgressIndicator())
+              : Center(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    QrImageView(
+                      data:
+                          'http://localhost:4000/timeRequests/${timeReserve?.id}',
+                      size: 200,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '${timeReserve?.timeReserveNumber}',
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    SizedBox(
+                      width: 350,
+                      child: Card(
                         color: Colors.white,
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            side:
-                                const BorderSide(color: Colors.grey, width: 1)),
+                          borderRadius: BorderRadius.circular(10),
+                          side: const BorderSide(color: Colors.grey, width: 1),
+                        ),
                         child: Padding(
                           padding: const EdgeInsets.all(16.0),
                           child: Column(
@@ -95,19 +94,23 @@ class _TimeReservceDetailState extends State<TimeReservceDetail> {
                                 child: Row(
                                   children: [
                                     const Expanded(
-                                        flex: 3,
-                                        child: Text(
-                                          'Нэр:',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        )),
+                                      flex: 3,
+                                      child: Text(
+                                        'Нэр:',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
                                     Expanded(
-                                        flex: 2,
-                                        child: Text(
-                                          '${timeReserve?.customer.firstName}',
-                                          style: const TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        ))
+                                      flex: 2,
+                                      child: Text(
+                                        '${timeReserve?.customer.firstName}',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -116,19 +119,23 @@ class _TimeReservceDetailState extends State<TimeReservceDetail> {
                                 child: Row(
                                   children: [
                                     const Expanded(
-                                        flex: 3,
-                                        child: Text(
-                                          'Утас:',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        )),
+                                      flex: 3,
+                                      child: Text(
+                                        'Утас:',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
                                     Expanded(
-                                        flex: 2,
-                                        child: Text(
-                                          '${timeReserve?.customer.phone}',
-                                          style: const TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        ))
+                                      flex: 2,
+                                      child: Text(
+                                        '${timeReserve?.customer.phone}',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -137,19 +144,23 @@ class _TimeReservceDetailState extends State<TimeReservceDetail> {
                                 child: Row(
                                   children: [
                                     const Expanded(
-                                        flex: 3,
-                                        child: Text(
-                                          'Захиалгын дугаар:',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        )),
+                                      flex: 3,
+                                      child: Text(
+                                        'Захиалгын дугаар:',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
                                     Expanded(
-                                        flex: 2,
-                                        child: Text(
-                                          '${timeReserve?.timeReserveNumber}',
-                                          style: const TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        ))
+                                      flex: 2,
+                                      child: Text(
+                                        '${timeReserve?.timeReserveNumber}',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -158,19 +169,23 @@ class _TimeReservceDetailState extends State<TimeReservceDetail> {
                                 child: Row(
                                   children: [
                                     const Expanded(
-                                        flex: 3,
-                                        child: Text(
-                                          'Огноо:',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        )),
+                                      flex: 3,
+                                      child: Text(
+                                        'Огноо:',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
                                     Expanded(
-                                        flex: 2,
-                                        child: Text(
-                                          '${timeReserve?.dateTitle}',
-                                          style: const TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        ))
+                                      flex: 2,
+                                      child: Text(
+                                        '${timeReserve?.dateTitle}',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -179,63 +194,70 @@ class _TimeReservceDetailState extends State<TimeReservceDetail> {
                                 child: Row(
                                   children: [
                                     const Expanded(
-                                        flex: 3,
-                                        child: Text(
-                                          'Цаг:',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        )),
+                                      flex: 3,
+                                      child: Text(
+                                        'Цаг:',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
                                     Expanded(
-                                        flex: 2,
-                                        child: Text(
-                                          '${timeReserve?.startTime}',
-                                          style: const TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        ))
+                                      flex: 2,
+                                      child: Text(
+                                        '${timeReserve?.startTime}',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
                                   ],
                                 ),
-                              )
+                              ),
                             ],
                           ),
-                        )),
-                  ),
-                  const SizedBox(height: 32),
-                  SizedBox(
-                    width: 350,
-                    child: Card(
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    SizedBox(
+                      width: 350,
+                      child: Card(
                         color: Colors.white,
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            side:
-                                const BorderSide(color: Colors.grey, width: 1)),
+                          borderRadius: BorderRadius.circular(10),
+                          side: const BorderSide(color: Colors.grey, width: 1),
+                        ),
                         child: Padding(
                           padding: const EdgeInsets.all(16.0),
                           child: Column(
                             children: [
                               ...timeReserve?.services.map((item) {
                                     return Padding(
-                                        padding: EdgeInsets.all(8),
-                                        child: Row(
-                                          children: [
-                                            Expanded(
-                                                flex: 3,
-                                                child: Text(
-                                                  '${item.service.title}:',
-                                                  style: const TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.bold),
-                                                )),
-                                            Expanded(
-                                              flex: 2,
-                                              child: Text(
-                                                '${item.price}₮',
-                                                style: const TextStyle(
-                                                    fontWeight:
-                                                        FontWeight.bold),
+                                      padding: EdgeInsets.all(8),
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                            flex: 3,
+                                            child: Text(
+                                              '${item.service.title}:',
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
                                               ),
-                                            )
-                                          ],
-                                        ));
+                                            ),
+                                          ),
+                                          Expanded(
+                                            flex: 2,
+                                            child: Text(
+                                              '${item.price}₮',
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
                                   }).toList() ??
                                   [],
                               Padding(
@@ -243,98 +265,129 @@ class _TimeReservceDetailState extends State<TimeReservceDetail> {
                                 child: Row(
                                   children: [
                                     const Expanded(
-                                        flex: 3,
-                                        child: Text(
-                                          'Нийт дүн :',
-                                          style: const TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        )),
+                                      flex: 3,
+                                      child: Text(
+                                        'Нийт дүн :',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
                                     Expanded(
                                       flex: 2,
                                       child: Text(
                                         '${timeReserve?.totalAmount}₮',
                                         style: const TextStyle(
-                                            fontWeight: FontWeight.bold),
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
-                                    )
+                                    ),
                                   ],
                                 ),
                               ),
-                                     Padding(
+                              Padding(
                                 padding: EdgeInsets.all(8),
                                 child: Row(
                                   children: [
                                     const Expanded(
-                                        flex: 3,
-                                        child: Text(
-                                          'Нийт хугацаа :',
-                                          style: const TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        )),
+                                      flex: 3,
+                                      child: Text(
+                                        'Нийт хугацаа :',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
                                     Expanded(
                                       flex: 2,
                                       child: Text(
                                         '${timeReserve?.totalDuration} минут',
                                         style: const TextStyle(
-                                            fontWeight: FontWeight.bold),
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
-                                    )
+                                    ),
                                   ],
                                 ),
                               ),
-                              const SizedBox(
-                                height: 8,
+                              const SizedBox(height: 8),
+                              Padding(
+                                padding: EdgeInsets.all(8),
+                                child: Row(
+                                  children: [
+                                    const Expanded(
+                                      flex: 3,
+                                      child: Text(
+                                        'Төлөв :',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      flex: 2,
+                                      child: Text(
+                                        '${timeReserve?.state}',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                               Padding(
                                 padding: EdgeInsets.all(8),
                                 child: Row(
                                   children: [
                                     const Expanded(
-                                        flex: 3,
-                                        child: Text(
-                                          'Төлөв :',
-                                          style: const TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        )),
+                                      flex: 3,
+                                      child: Text(
+                                        'Төлбөрийн төлөв:',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
                                     Expanded(
                                       flex: 2,
                                       child: Text(
-                                        '${timeReserve?.state}',
+                                        '${timeReserve?.paymentState}',
                                         style: const TextStyle(
-                                            fontWeight: FontWeight.bold),
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
-                                    )
+                                    ),
                                   ],
                                 ),
                               ),
-                              Padding(
-                                  padding: EdgeInsets.all(8),
-                                  child: Row(
-                                    children: [
-                                      const Expanded(
-                                          flex: 3,
-                                          child: Text(
-                                            'Төлбөрийн төлөв:',
-                                            style: TextStyle(
-                                                fontWeight: FontWeight.bold),
-                                          )),
-                                      Expanded(
-                                        flex: 2,
-                                        child: Text(
-                                          '${timeReserve?.paymentState}',
-                                          style: const TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                      )
-                                    ],
-                                  )),
                             ],
                           ),
-                        )),
-                  )
-                ],
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.all(32),
+                      child: ElevatedButton(
+                             onPressed: () {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => HomeScreen(),
+                              ),
+                            );
+                        },
+                        child: Text('Буцах'),
+                        style: ElevatedButton.styleFrom(
+                          minimumSize: Size(double.infinity, 48),
+                          backgroundColor: Colors.pink,
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
     );
   }
 }

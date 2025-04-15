@@ -180,6 +180,7 @@ class _HomeScreen extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
+          automaticallyImplyLeading: false,
         title:
             hasToken
                 ? Row(
@@ -230,7 +231,6 @@ class _HomeScreen extends State<HomeScreen> {
             backgroundColor: Colors.white,
             builder: (BuildContext context) {
               return StatefulBuilder(
-                // 👈 this is key
                 builder: (BuildContext context, StateSetter modalSetState) {
                   return SizedBox(
                     height: 650,

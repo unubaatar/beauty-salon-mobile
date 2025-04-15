@@ -169,24 +169,24 @@ class _OrderCreateState extends State<OrderCreate> {
         currentStep++;
       });
     } else if (currentStep == 3) {
-      // ScaffoldMessenger.of(context).showSnackBar(
-      //   SnackBar(
-      //     content: Text('Амжилттай төлөгдлөө, Захиалга үүсгэж байна. '),
-      //     backgroundColor: Colors.green,
-      //     elevation: 0,
-      //     behavior: SnackBarBehavior.floating,
-      //     duration: Duration(seconds: 4),
-      //     shape: RoundedRectangleBorder(
-      //       borderRadius: BorderRadius.circular(10),
-      //     ),
-      //   ),
-      // );
-      // String orderId = await createOrder();
-      // await Future.delayed(Duration(seconds: 5));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Амжилттай төлөгдлөө, Захиалга үүсгэж байна. '),
+          backgroundColor: Colors.green,
+          elevation: 0,
+          behavior: SnackBarBehavior.floating,
+          duration: Duration(seconds: 4),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+      String orderId = await createOrder();
+      await Future.delayed(Duration(seconds: 2));
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => OrderDetail(orderDetailId: '67fccb2ac71d5e6a4fab718d'),
+          builder: (context) => OrderDetail(orderDetailId: orderId),
         ),
       );
     }
