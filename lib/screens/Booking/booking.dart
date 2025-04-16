@@ -21,8 +21,6 @@ class BookingPage extends StatefulWidget {
 
 class _BookingPageState extends State<BookingPage>
     with SingleTickerProviderStateMixin {
-  TabController? _tabController;
-
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
   final _phoneController = TextEditingController();
@@ -51,6 +49,11 @@ class _BookingPageState extends State<BookingPage>
 
   DateTime currentDate = DateTime.now();
   final List<TimeReserveItem> _selectedServices = [];
+
+  final TextEditingController cardHolderController = TextEditingController();
+  final TextEditingController cardNumberController = TextEditingController();
+  final TextEditingController cardEndDateController = TextEditingController();
+  final TextEditingController cvvController = TextEditingController();
 
   Future fetchCategories() async {
     try {
@@ -243,7 +246,18 @@ class _BookingPageState extends State<BookingPage>
           'price': addPrice.addPrice,
         });
       });
-
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Амжилттай төлөгдлөө, Цаг захиалга үүсгэж байна. '),
+          backgroundColor: Colors.green,
+          elevation: 0,
+          behavior: SnackBarBehavior.floating,
+          duration: Duration(seconds: 4),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
       final String? customerId = await _secureStorage.read(key: 'customerId');
       if (customerId == null) {
         _showLoginDialog();
@@ -392,6 +406,20 @@ class _BookingPageState extends State<BookingPage>
         fetchPossibleTimes();
       });
     } else if (currentStep == 2) {
+      final String? customerId = await _secureStorage.read(key: 'customerId');
+      if (customerId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Та нэвтэрч байж үйлдлийг хийх боломжтой'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+        return;
+      }
+      setState(() {
+        currentStep++;
+      });
+    } else if (currentStep == 3) {
       createTimeReserve();
     }
   }
@@ -409,6 +437,10 @@ class _BookingPageState extends State<BookingPage>
         selectedTime = "";
         selectedSchedule = "";
         _possibleTimes.clear();
+      });
+    } else if (currentStep == 3) {
+      setState(() {
+        currentStep--;
       });
     }
   }
@@ -438,9 +470,24 @@ class _BookingPageState extends State<BookingPage>
     return List.generate(7, (index) => startOfWeek.add(Duration(days: index)));
   }
 
+  void _onTextChanged() => setState(() {});
+
+  @override
+  void dispose() {
+    cardEndDateController.dispose();
+    cardNumberController.dispose();
+    cardHolderController.dispose();
+    cvvController.dispose();
+    super.dispose();
+  }
+
   @override
   void initState() {
     super.initState();
+    cardHolderController.addListener(_onTextChanged);
+    cardNumberController.addListener(_onTextChanged);
+    cardEndDateController.addListener(_onTextChanged);
+    cvvController.addListener(_onTextChanged);
     fetchCategories();
   }
 
@@ -570,6 +617,12 @@ class _BookingPageState extends State<BookingPage>
                             : (currentStep == 2 &&
                                 (selectedSchedule == '' || selectedTime == ''))
                             ? null
+                            : (currentStep == 3 &&
+                                (cardEndDateController.text.trim().isEmpty ||
+                                    cardHolderController.text.trim().isEmpty ||
+                                    cardNumberController.text.trim().isEmpty ||
+                                    cvvController.text.trim().isEmpty))
+                            ? null
                             : nextStep,
                     style: ElevatedButton.styleFrom(
                       minimumSize: const Size(200, 40),
@@ -577,7 +630,11 @@ class _BookingPageState extends State<BookingPage>
                       foregroundColor: Colors.white,
                     ),
                     child: Text(
-                      ' ${currentStep == 2 ? 'Захиалах' : 'Үргэлжлүүлэх'}',
+                      ' ${currentStep == 3
+                          ? 'Захиалах'
+                          : currentStep == 2
+                          ? 'Төлбөр төлөх'
+                          : 'Үргэлжлүүлэх'}',
                     ),
                   ),
                 ),
@@ -988,50 +1045,130 @@ class _BookingPageState extends State<BookingPage>
                                                 ) {
                                                   return Row(
                                                     children: [
-                                                      Image.network(service.service.image , width: 80, fit: BoxFit.cover,),
-                                                      SizedBox(width: 40,),
+                                                      Image.network(
+                                                        service.service.image,
+                                                        width: 80,
+                                                        fit: BoxFit.cover,
+                                                      ),
+                                                      SizedBox(width: 40),
                                                       Column(
-                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
                                                         children: [
-                                                              Text(
-                                                        service.service.title,
-                                                        style: TextStyle(fontSize: 18 , fontWeight: FontWeight.bold),
-                                                      ),
-                                                      if(service.variant !=null) 
-                                                      Text(service.variant!.title),
-                                                              additionalFees.any(
-                                                            (fee) =>
-                                                                fee.id ==
-                                                                service
-                                                                    .service
-                                                                    .id,
-                                                          )
-                                                          ? ((service.variant !=
-                                                                  null
-                                                              ? Text(
-                                                                style: TextStyle(fontSize: 16),
-                                                                NumberFormat.currency(locale: 'en_US', symbol: '₮ ').format(service.variant!.price + additionalFees.firstWhere((fee) => fee.id == service.service.id).addPrice),
+                                                          Text(
+                                                            service
+                                                                .service
+                                                                .title,
+                                                            style: TextStyle(
+                                                              fontSize: 18,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                            ),
+                                                          ),
+                                                          if (service.variant !=
+                                                              null)
+                                                            Text(
+                                                              service
+                                                                  .variant!
+                                                                  .title,
+                                                            ),
+                                                          additionalFees.any(
+                                                                (fee) =>
+                                                                    fee.id ==
+                                                                    service
+                                                                        .service
+                                                                        .id,
                                                               )
-                                                              : Text(
-                                                                 style: TextStyle(fontSize: 16),
-                                                                NumberFormat.currency(locale: 'en_US', symbol: '₮ ').format(service.variant!.price + additionalFees.firstWhere((fee) => fee.id == service.service.id).addPrice),
-                                                              )))
-                                                          : (service.variant !=
-                                                                  null
-                                                              ? Text(
-                                                                 style: TextStyle(fontSize: 16),
-                                                                NumberFormat.currency(locale: 'en_US', symbol: '₮ ').format(service.variant!.price),
-                                                              )
-                                                              : Text(
-                                                                 style: TextStyle(fontSize: 16),
-                                                                NumberFormat.currency(locale: 'en_US', symbol: '₮ ').format(service.service.price),
-                                                              )),
+                                                              ? ((service.variant !=
+                                                                      null
+                                                                  ? Text(
+                                                                    style: TextStyle(
+                                                                      fontSize:
+                                                                          16,
+                                                                    ),
+                                                                    NumberFormat.currency(
+                                                                      locale:
+                                                                          'en_US',
+                                                                      symbol:
+                                                                          '₮ ',
+                                                                    ).format(
+                                                                      service
+                                                                              .variant!
+                                                                              .price +
+                                                                          additionalFees
+                                                                              .firstWhere(
+                                                                                (
+                                                                                  fee,
+                                                                                ) =>
+                                                                                    fee.id ==
+                                                                                    service.service.id,
+                                                                              )
+                                                                              .addPrice,
+                                                                    ),
+                                                                  )
+                                                                  : Text(
+                                                                    style: TextStyle(
+                                                                      fontSize:
+                                                                          16,
+                                                                    ),
+                                                                    NumberFormat.currency(
+                                                                      locale:
+                                                                          'en_US',
+                                                                      symbol:
+                                                                          '₮ ',
+                                                                    ).format(
+                                                                      service
+                                                                              .variant!
+                                                                              .price +
+                                                                          additionalFees
+                                                                              .firstWhere(
+                                                                                (
+                                                                                  fee,
+                                                                                ) =>
+                                                                                    fee.id ==
+                                                                                    service.service.id,
+                                                                              )
+                                                                              .addPrice,
+                                                                    ),
+                                                                  )))
+                                                              : (service.variant !=
+                                                                      null
+                                                                  ? Text(
+                                                                    style: TextStyle(
+                                                                      fontSize:
+                                                                          16,
+                                                                    ),
+                                                                    NumberFormat.currency(
+                                                                      locale:
+                                                                          'en_US',
+                                                                      symbol:
+                                                                          '₮ ',
+                                                                    ).format(
+                                                                      service
+                                                                          .variant!
+                                                                          .price,
+                                                                    ),
+                                                                  )
+                                                                  : Text(
+                                                                    style: TextStyle(
+                                                                      fontSize:
+                                                                          16,
+                                                                    ),
+                                                                    NumberFormat.currency(
+                                                                      locale:
+                                                                          'en_US',
+                                                                      symbol:
+                                                                          '₮ ',
+                                                                    ).format(
+                                                                      service
+                                                                          .service
+                                                                          .price,
+                                                                    ),
+                                                                  )),
                                                         ],
-
-
                                                       ),
-                                                  
-                                              
                                                     ],
                                                   );
                                                 }).toList(),
@@ -1118,13 +1255,13 @@ class _BookingPageState extends State<BookingPage>
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                  const SizedBox(height: 2,),
+                                  const SizedBox(height: 2),
                                   Text(
                                     worker.level.level,
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 13,
-                                      color: Colors.grey
+                                      color: Colors.grey,
                                     ),
                                   ),
                                 ],
@@ -1135,7 +1272,8 @@ class _BookingPageState extends State<BookingPage>
                       }).toList(),
                 ),
               )
-              : Padding(
+              : currentStep == 2
+              ? Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1274,6 +1412,7 @@ class _BookingPageState extends State<BookingPage>
                                       });
                                     },
                                     child: Card(
+                                      color: Colors.white,
                                       shape: RoundedRectangleBorder(
                                         side: BorderSide(
                                           color:
@@ -1294,12 +1433,78 @@ class _BookingPageState extends State<BookingPage>
                                         ),
                                         borderRadius: BorderRadius.circular(10),
                                       ),
-                                      child: Center(child: Text(time)),
+                                      child: Center(
+                                        child: Text(
+                                          time,
+                                          style: TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
                                     ),
                                   );
                                 }).toList(),
                           ),
                         ),
+                  ],
+                ),
+              )
+              : Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    TextField(
+                      controller: cardHolderController,
+                      decoration: InputDecoration(
+                        labelText: 'Карт эзэмшигчийн нэр',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    SizedBox(height: 12),
+                    TextField(
+                      controller: cardNumberController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: 'Картын дугаар',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: cardEndDateController,
+                            keyboardType: TextInputType.datetime,
+                            decoration: InputDecoration(
+                              labelText: 'Дуусах хугацаа (MM/YY)',
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: TextField(
+                            controller: cvvController,
+                            keyboardType: TextInputType.number,
+                            obscureText: true,
+                            decoration: InputDecoration(
+                              labelText: 'CVV',
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 24),
+                    Text(
+                      'Нийт үнийн дүн: ${NumberFormat.currency(locale: 'en_US', symbol: '₮ ').format(getTotalPrice(_selectedServices))}',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ],
                 ),
               ),

@@ -16,7 +16,6 @@ class ServicesPage extends StatefulWidget {
 
 class _ServicesPageState extends State<ServicesPage>
     with SingleTickerProviderStateMixin {
-  late TabController _tabController;
   List<ServiceCategory> _serviceCategories = [];
   List<Service> _services = [];
   int _selectedIndex = 0;
@@ -41,10 +40,6 @@ class _ServicesPageState extends State<ServicesPage>
               (jsonData['rows'] as List)
                   .map((eachCategory) => ServiceCategory.fromJson(eachCategory))
                   .toList();
-          _tabController = TabController(
-            length: _serviceCategories.length,
-            vsync: this,
-          );
           selectedCategoryId = _serviceCategories[0].id;
         });
       } else {
@@ -213,13 +208,16 @@ class _ServicesPageState extends State<ServicesPage>
                                             mainAxisAlignment:
                                                 MainAxisAlignment.spaceBetween,
                                             children: [
-                                              Text(
+                                              SizedBox( width: 120, child:          Text(
                                                 service.title,
                                                 style: TextStyle(
                                                   fontSize: 15,
                                                   fontWeight: FontWeight.bold,
                                                 ),
-                                              ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ), )
+                                     
                                             ],
                                           ),
                                           const SizedBox(height: 1),

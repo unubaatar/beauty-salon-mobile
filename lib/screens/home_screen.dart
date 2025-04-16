@@ -20,6 +20,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreen extends State<HomeScreen> {
+  String logoUrl =
+      'https://logowik.com/content/uploads/images/hair-salon5230.logowik.com.webp';
   int _selectedIndex = 0;
   bool hasToken = false;
 
@@ -180,7 +182,8 @@ class _HomeScreen extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-          automaticallyImplyLeading: false,
+        backgroundColor: Color(0xFFF2949C),
+        automaticallyImplyLeading: false,
         title:
             hasToken
                 ? Row(
@@ -192,7 +195,7 @@ class _HomeScreen extends State<HomeScreen> {
                         children: [
                           Text(
                             'Сайн уу ? $name',
-                            style: TextStyle(fontSize: 18),
+                            style: TextStyle(fontSize: 20, color: Colors.white , fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
@@ -215,8 +218,27 @@ class _HomeScreen extends State<HomeScreen> {
                     ),
                   ],
                 )
-                : Center(child: Text('Гоо сайхны салон')),
-        backgroundColor: Colors.white,
+                : Row(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.network(
+                        logoUrl,
+                        width: 40,
+                        height: 40,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    SizedBox(width: 24),
+                    Text(
+                      'Гоо сайхны салон',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
       ),
       body: _pages[_selectedIndex],
       floatingActionButton: FloatingActionButton(

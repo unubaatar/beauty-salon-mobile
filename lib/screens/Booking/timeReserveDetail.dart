@@ -60,7 +60,8 @@ class _TimeReservceDetailState extends State<TimeReservceDetail> {
           loading
               ? const Center(child: CircularProgressIndicator())
               : Center(
-                child: Column(
+                child: SingleChildScrollView(
+                              child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     QrImageView(
@@ -387,6 +388,8 @@ class _TimeReservceDetailState extends State<TimeReservceDetail> {
                     ),
                   ],
                 ),
+                )
+    
               ),
     );
   }

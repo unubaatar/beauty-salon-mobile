@@ -3,12 +3,10 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:intl/intl.dart';
-import 'dart:math';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-import 'package:flutter/material.dart';
+
+
 import 'package:test/models/productVariant.dart';
-
 import '../../models/product.dart';
 
 class ProductDetail extends StatefulWidget {
@@ -28,44 +26,56 @@ class _ProductDetailState extends State<ProductDetail> {
 
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
-Future addItemCart() async {
-  try {
-    String? customerId = await _secureStorage.read(key: 'customerId');
+  Future addItemCart() async {
+    try {
+      String? customerId = await _secureStorage.read(key: 'customerId');
 
-    final chosenSellPrice = selectedVariant != null
-        ? selectedVariant!.sellPrice
-        : product.sellPrice;
+      if (customerId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Та нэвтэрч байж үйлдлийг хийх боломжтой'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+        Navigator.pop(
+          context,
+        );
+      }
 
-    final url = Uri.parse('http://10.0.2.2:4004/api/v1/cartItems/create');
+      final chosenSellPrice =
+          selectedVariant != null
+              ? selectedVariant!.sellPrice
+              : product.sellPrice;
 
+      final url = Uri.parse('http://10.0.2.2:4004/api/v1/cartItems/create');
 
-    final Map<String, dynamic> body = {
-      'customer': customerId,
-      'product': product.id,
-      if(selectedVariant != null)'variant': selectedVariant?.id,
-      'qty': selectedQty,
-      'price': selectedVariant?.price ?? product.price,
-      if (chosenSellPrice != null) 'sellPrice': chosenSellPrice,
-    };
+      final Map<String, dynamic> body = {
+        'customer': customerId,
+        'product': product.id,
+        if (selectedVariant != null) 'variant': selectedVariant?.id,
+        'qty': selectedQty,
+        'price': selectedVariant?.price ?? product.price,
+        if (chosenSellPrice != null) 'sellPrice': chosenSellPrice,
+      };
 
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode(body),
-    );
-
-    if (response.statusCode == 201) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Амжилттай үүслээ')),
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(body),
       );
-    } else {
-      print(response.body);
-      print('jiijii');
+
+      if (response.statusCode == 201) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Амжилттай үүслээ')));
+      } else {
+        print(response.body);
+        print('jiijii');
+      }
+    } catch (err) {
+      print(err);
     }
-  } catch (err) {
-    print(err);
   }
-}
 
   Future fetchProduct() async {
     try {
