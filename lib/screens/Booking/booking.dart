@@ -445,10 +445,16 @@ class _BookingPageState extends State<BookingPage>
     }
   }
 
-  int getTotalPrice(List<TimeReserveItem> selectedServices) {
+  int getTotalPrice(
+    List<TimeReserveItem> selectedServices,
+    List<AdditionalFee> additionalFees,
+  ) {
     int sum = 0;
     selectedServices.forEach((service) {
       sum += service.price;
+    });
+    additionalFees.forEach((fee) {
+      sum += fee.addPrice;
     });
     return sum;
   }
@@ -567,7 +573,9 @@ class _BookingPageState extends State<BookingPage>
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text('Нийт:'),
-                          Text('${getTotalPrice(_selectedServices)}₮'),
+                          Text(
+                            '${getTotalPrice(_selectedServices, additionalFees)}₮',
+                          ),
                         ],
                       ),
                     ],
@@ -1499,7 +1507,7 @@ class _BookingPageState extends State<BookingPage>
                     ),
                     SizedBox(height: 24),
                     Text(
-                      'Нийт үнийн дүн: ${NumberFormat.currency(locale: 'en_US', symbol: '₮ ').format(getTotalPrice(_selectedServices))}',
+                      'Нийт үнийн дүн: ${NumberFormat.currency(locale: 'en_US', symbol: '₮ ').format(getTotalPrice(_selectedServices, additionalFees))}',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
