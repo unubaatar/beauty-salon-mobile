@@ -46,6 +46,7 @@ class _BookingPageState extends State<BookingPage>
 
   bool loadingPossibleTimes = true;
   bool loadServices = true;
+  bool approvePayment = false;
 
   DateTime currentDate = DateTime.now();
   final List<TimeReserveItem> _selectedServices = [];
@@ -623,7 +624,9 @@ class _BookingPageState extends State<BookingPage>
                             : (currentStep == 1 && selectedWorkerId == '')
                             ? null
                             : (currentStep == 2 &&
-                                (selectedSchedule == '' || selectedTime == ''))
+                                (selectedSchedule == '' ||
+                                    selectedTime == '' ||
+                                    !approvePayment))
                             ? null
                             : (currentStep == 3 &&
                                 (cardEndDateController.text.trim().isEmpty ||
@@ -1417,7 +1420,52 @@ class _BookingPageState extends State<BookingPage>
                                     onTap: () {
                                       setState(() {
                                         selectedTime = time;
+                                        approvePayment = false;
                                       });
+
+                                      showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return AlertDialog(
+                                            backgroundColor: Colors.white,
+                                            title: Text(
+                                              "Анхааруулга",
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,  
+                                              ),
+                                            ),
+                                            content: Text(
+                                              "Та төлбөрөө баталгаажуулсан тохиолдолд цуцлах боломжгүйг анхаарна уу!",
+                                              style: TextStyle(fontSize: 18),
+                                            ),
+                                            actions: [
+                                              TextButton(
+                                                style: TextButton.styleFrom(
+                                                  foregroundColor: Colors.pink,
+                                                ),
+                                                onPressed: () {
+                                                  Navigator.of(context).pop();
+                                                },
+                                                child: Text("Татгалзах"),
+                                              ),
+                                              ElevatedButton(
+                                                style: TextButton.styleFrom(
+                                                  backgroundColor: Colors.pink,
+                                                  foregroundColor: Colors.white,
+                                                ),
+                                                onPressed: () {
+                                                  Navigator.of(context).pop();
+                                                  setState(() {
+                                                    approvePayment = true;
+                                                  });
+                                                },
+                                                child: Text("Ойлголоо"),
+                                              ),
+                                            ],
+                                          );
+                                        },
+                                      );
                                     },
                                     child: Card(
                                       color: Colors.white,
