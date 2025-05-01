@@ -69,7 +69,7 @@ class _OrderDetailState extends State<OrderDetail> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       QrImageView(
-                        data: 'http://localhost:4000/timeRequests/${order?.id}',
+                        data: 'http://localhost:4000/orders/${order?.id}',
                         size: 200,
                       ),
                       const SizedBox(height: 8),
