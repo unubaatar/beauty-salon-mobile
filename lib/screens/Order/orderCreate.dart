@@ -259,7 +259,7 @@ class _OrderCreateState extends State<OrderCreate> {
                             (provinceController.text.trim().isEmpty ||
                                 districtController.text.trim().isEmpty ||
                                 sectionController.text.trim().isEmpty ||
-                                addressController.text.trim().isEmpty))
+                                addressController.text.trim().isEmpty) && orderType == "delivery" )
                         ? null
                         : () => nextStep(),
                 style: ElevatedButton.styleFrom(
@@ -756,6 +756,7 @@ class _OrderCreateState extends State<OrderCreate> {
                             ),
 
                             SizedBox(height: 12),
+                            if(orderType == "delivery")
                             TextField(
                               controller: provinceController,
                               decoration: InputDecoration(
@@ -764,6 +765,7 @@ class _OrderCreateState extends State<OrderCreate> {
                               ),
                             ),
                             SizedBox(height: 12),
+                                if(orderType == "delivery")
                             TextField(
                               controller: districtController,
                               decoration: InputDecoration(
@@ -772,6 +774,7 @@ class _OrderCreateState extends State<OrderCreate> {
                               ),
                             ),
                             SizedBox(height: 12),
+                                if(orderType == "delivery")
                             TextField(
                               controller: sectionController,
                               decoration: InputDecoration(
@@ -780,6 +783,7 @@ class _OrderCreateState extends State<OrderCreate> {
                               ),
                             ),
                             SizedBox(height: 12),
+                                if(orderType == "delivery")
                             TextField(
                               controller: addressController,
                               maxLines: 3,
