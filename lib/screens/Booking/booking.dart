@@ -298,6 +298,7 @@ class _BookingPageState extends State<BookingPage>
   }
 
   void _showLoginDialog() {
+    print("dialog gargaj bnaaa");
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -306,12 +307,13 @@ class _BookingPageState extends State<BookingPage>
           title: const Text(
             'Нэвтрэх шаардлагатай',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 16),
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16.0),
           ),
           content: Container(
+            width: 500,
             height: 200,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -355,7 +357,22 @@ class _BookingPageState extends State<BookingPage>
 
                     if (response.statusCode == 200) {
                       final jsonData = jsonDecode(response.body);
-                      _saveCredentials(jsonData['customer'], jsonData['token']);
+                      await _secureStorage.write(
+                        key: 'customerId',
+                        value: jsonData['customer'],
+                      );
+                      await _secureStorage.write(
+                        key: 'token',
+                        value: jsonData['token'],
+                      );
+                      await _secureStorage.write(
+                        key: 'name',
+                        value: jsonData['name'],
+                      );
+                      await _secureStorage.write(
+                        key: 'avatar',
+                        value: jsonData['avatar'],
+                      );
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text('Амжилттай нэвтэрлээ'),
@@ -388,11 +405,6 @@ class _BookingPageState extends State<BookingPage>
     );
   }
 
-  Future<void> _saveCredentials(String customerId, String token) async {
-    await _secureStorage.write(key: 'customerId', value: customerId);
-    await _secureStorage.write(key: 'token', value: token);
-  }
-
   void nextStep() async {
     if (currentStep == 0) {
       setState(() {
@@ -415,8 +427,46 @@ class _BookingPageState extends State<BookingPage>
             duration: Duration(seconds: 1),
           ),
         );
+        _showLoginDialog();
+        // showModalBottomSheet(
+        //   backgroundColor: Colors.white,
+        //   context: context,
+        //   isScrollControlled: true,
+        //   shape: const RoundedRectangleBorder(
+        //     borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        //   ),
+        //   builder:
+        //       (context) => Container(
+        //         width: double.infinity,
+        //         padding: const EdgeInsets.all(16),
+        //         height: 600,
+        //         child: Column(
+        //           crossAxisAlignment: CrossAxisAlignment.start,
+        //           children: [
+        //             Container(
+        //               width: double.infinity,
+        //               alignment: Alignment.center,
+        //               child: Column(
+        //                 children: [
+        //                   const Text(
+        //                     'Нэвтрэх',
+        //                     style: TextStyle(
+        //                       fontWeight: FontWeight.bold,
+        //                       fontSize: 24,
+        //                     ),
+        //                   ),
+        //                   SizedBox(height: 160,),
+
+        //                 ],
+        //               ),
+        //             ),
+        //           ],
+        //         ),
+        //       ),
+        // );
         return;
       }
+
       setState(() {
         currentStep++;
       });
@@ -508,86 +558,6 @@ class _BookingPageState extends State<BookingPage>
         backgroundColor: Colors.white,
       ),
       backgroundColor: Colors.white,
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 80.0),
-        child: ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            padding: EdgeInsets.zero,
-            shape: const CircleBorder(),
-            minimumSize: const Size(56, 56),
-            backgroundColor: Colors.pink,
-            foregroundColor: Colors.white,
-          ),
-          onPressed: () {
-            showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  title: const Text(
-                    'Нийт үйлчилгээнүүд',
-                    style: TextStyle(fontSize: 18),
-                    textAlign: TextAlign.center,
-                  ),
-                  content: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      ..._selectedServices.map((service) {
-                        return Padding(
-                          padding: const EdgeInsets.fromLTRB(0, 4, 0, 12),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Align(
-                                alignment: Alignment.topLeft,
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text('${service.service.title} '),
-                                    const SizedBox(height: 3),
-                                    Text(
-                                      '${service.variant != null ? service.variant?.title : ''} ',
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Align(
-                                alignment: Alignment.topLeft,
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text('${service.price}₮'),
-                                    const SizedBox(height: 3),
-                                    Text(
-                                      '${service.variant != null ? service.variant?.duration : service.service.duration} минут ',
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }),
-                      const Divider(),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text('Нийт:'),
-                          Text(
-                            '${getTotalPrice(_selectedServices, additionalFees)}₮',
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                );
-              },
-            );
-          },
-          child: const Icon(Icons.medical_services_outlined),
-        ),
-      ),
       bottomSheet: SizedBox(
         height: 80,
         width: double.infinity,
@@ -1432,7 +1402,7 @@ class _BookingPageState extends State<BookingPage>
                                               "Анхааруулга",
                                               textAlign: TextAlign.center,
                                               style: TextStyle(
-                                                fontWeight: FontWeight.bold,  
+                                                fontWeight: FontWeight.bold,
                                               ),
                                             ),
                                             content: Text(
