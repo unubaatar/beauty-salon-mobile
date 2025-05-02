@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'dart:convert';
@@ -17,14 +18,30 @@ class _OrderListState extends State<OrderList> {
   bool loading = true;
   List<Order> _orders = [];
 
+  String? selectedStatus = "pending";
+
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
+
+  final Map<String, String> statusMap = {
+    'pending': 'Хүлээгдэж байна',
+    'in process': 'Явцад байна',
+    'arrived': 'Ирсэн',
+    'complete': 'Дууссан',
+  };
+
   Future fetchOrders() async {
     try {
+      setState(() {
+        loading = true;
+      });
       final url = Uri.parse('http://10.0.2.2:4004/api/v1/orders/getByCustomer');
-      print('fetching');
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
-        body: json.encode({'customer': widget.customer}),
+        body: json.encode({
+          'customer': widget.customer,
+          'state': selectedStatus,
+        }),
       );
       if (response.statusCode == 200) {
         final jsonData = jsonDecode(response.body);
@@ -59,13 +76,53 @@ class _OrderListState extends State<OrderList> {
         backgroundColor: Colors.white,
         title: Text('Бүтээгдэхүүн захиалгууд'),
       ),
-      body:
-          loading
-              ? Center(child: CircularProgressIndicator(color: Colors.pink))
-              : Padding(
-                padding: const EdgeInsets.all(8),
-                child: GridView.count(
+      body: Padding(
+        padding: const EdgeInsets.all(8),
+        child: ListView(
+          children: [
+            Padding(
+              padding: EdgeInsets.all(8),
+              child: DropdownButtonFormField<String>(
+                dropdownColor: Colors.white,
+                value: selectedStatus,
+                decoration: InputDecoration(
+                  labelText: 'Төлөв сонгох',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                ),
+                isExpanded: true,
+                onChanged: (value) {
+                  setState(() async {
+                    selectedStatus = value;
+                    await fetchOrders();
+                  });
+                },
+                items:
+                    statusMap.entries.map((entry) {
+                      return DropdownMenuItem<String>(
+                        value: entry.key,
+                        child: Text(entry.value),
+                      );
+                    }).toList(),
+              ),
+            ),
+
+            loading
+                ? SizedBox(
+                  height: 600,
+                  child: Center(
+                    child: CircularProgressIndicator(color: Colors.pink),
+                  ),
+                )
+                : GridView.count(
                   crossAxisCount: 2,
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
                   children: [
                     ..._orders.map((order) {
                       return Padding(
@@ -115,7 +172,9 @@ class _OrderListState extends State<OrderList> {
                     }).toList(),
                   ],
                 ),
-              ),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -42,6 +42,7 @@ class _ServicesPageState extends State<ServicesPage>
                   .toList();
           selectedCategoryId = _serviceCategories[0].id;
         });
+        await fetchServices();
       } else {
         print("Error: ${response.statusCode}");
       }
@@ -86,7 +87,6 @@ class _ServicesPageState extends State<ServicesPage>
   void initState() {
     super.initState();
     fetchCategories();
-    fetchServices();
   }
 
   @override

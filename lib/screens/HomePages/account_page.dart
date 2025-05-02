@@ -7,6 +7,7 @@ import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import '../Booking/timeReserveList.dart';
 import '../Order/orderList.dart';
 import '../home_screen.dart';
+import '../HomePages/register_page.dart';
 
 import '../../models/customer.dart';
 
@@ -258,7 +259,27 @@ class _AccountPageState extends State<AccountPage> {
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: 8),
+                TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => RegisterPage()),
+                    );
+                  },
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.pink,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 4.0,
+                      horizontal: 32.0,
+                    ),
+                    minimumSize: Size(double.infinity, 24),
+                  ),
+                  child: Text('Register', style: TextStyle(fontSize: 18)),
+                ),
               ],
             ),
           ),
