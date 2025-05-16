@@ -278,7 +278,7 @@ class _AccountPageState extends State<AccountPage> {
                     ),
                     minimumSize: Size(double.infinity, 24),
                   ),
-                  child: Text('Register', style: TextStyle(fontSize: 18)),
+                  child: Text('Бүртгүүлэх', style: TextStyle(fontSize: 18)),
                 ),
               ],
             ),
